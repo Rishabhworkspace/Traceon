@@ -1,6 +1,16 @@
 {
   "version": 1,
   "skills": {
+    "ai-image-generation": {
+      "source": "inference-sh-9/skills",
+      "sourceType": "github",
+      "computedHash": "a4d927ccfdc220d0ba000ae835ce964e97158c6f4f78d946590ced1d90d13ec5"
+    },
+    "better-auth-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "computedHash": "9ab075b5061be2a5f299c10505667345cc1ec76e8de4120901cfd586643e776f"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
@@ -11,10 +21,25 @@
       "sourceType": "github",
       "computedHash": "7307fd4f2e946457587880475908c63d9df7017150ca1abde5629055f7961f69"
     },
+    "nano-banana": {
+      "source": "inference-sh-9/skills",
+      "sourceType": "github",
+      "computedHash": "2dfccd5947b54cd60395a51d9962354dc636561b6c305a1b139279873dca854c"
+    },
     "nextjs-app-router-patterns": {
       "source": "wshobson/agents",
       "sourceType": "github",
       "computedHash": "bdf01cb716d99c640cf02438eee71b544709730ef4d59b3cc24b8721a4540e4b"
+    },
+    "remotion-best-practices": {
+      "source": "remotion-dev/skills",
+      "sourceType": "github",
+      "computedHash": "46a55d68886d6c104bde7803c55a479f91b45ae01441e37c800373bcb0bf3719"
+    },
+    "requesting-code-review": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "93a837ba79c3c3f0b3e503fd9d8b54c638337d73d200c1af3bca9607264bf0e0"
     },
     "tailwind-design-system": {
       "source": "wshobson/agents",
