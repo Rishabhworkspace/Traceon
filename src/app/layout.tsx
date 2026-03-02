@@ -1,29 +1,45 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { DM_Sans, Syne, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-const inter = Inter({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-body",
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["700", "800"],
+});
+
+const firaCode = Fira_Code({
   subsets: ["latin"],
   variable: "--font-mono",
   display: "swap",
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
   title: "Traceon — Codebase Intelligence Platform",
   description:
-    "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict the impact of your changes with Traceon.",
-  keywords: ["codebase analysis", "dependency graph", "architecture visualization", "impact analysis", "developer tools"],
+    "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict the impact of your changes.",
+  keywords: [
+    "codebase analysis",
+    "dependency graph",
+    "architecture visualization",
+    "impact analysis",
+    "developer tools",
+  ],
   openGraph: {
     title: "Traceon — Codebase Intelligence Platform",
-    description: "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict impact.",
+    description:
+      "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict impact.",
     type: "website",
   },
 };
@@ -35,9 +51,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
+      <body
+        className={`${dmSans.variable} ${syne.variable} ${firaCode.variable} antialiased`}
+      >
         <Navbar />
-        <main className="min-h-screen pt-16">{children}</main>
+        <main className="min-h-screen pt-14">{children}</main>
         <Footer />
       </body>
     </html>

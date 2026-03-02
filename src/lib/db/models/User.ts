@@ -20,6 +20,7 @@ const UserSchema = new Schema<IUser>(
         passwordHash: {
             type: String,
             required: [true, 'Password is required'],
+            select: false, // Security best practice from MongoDB skills
         },
         name: {
             type: String,
@@ -31,6 +32,8 @@ const UserSchema = new Schema<IUser>(
         timestamps: true,
     }
 );
+
+UserSchema.index({ email: 1 });
 
 const User: Model<IUser> =
     mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

@@ -2,79 +2,98 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { GitBranch, Menu, X, LogIn } from 'lucide-react';
+import { Menu, X, Terminal } from 'lucide-react';
+
+const navLinks = [
+    { label: 'Features', href: '#features' },
+    { label: 'How it Works', href: '#how-it-works' },
+    { label: 'Docs', href: '/docs' },
+];
 
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-bg-primary/80 backdrop-blur-xl">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="flex h-16 items-center justify-between">
+        <nav className="fixed top-0 left-0 right-0 z-50 border-b border-stroke bg-surface-0/70 backdrop-blur-2xl">
+            <div className="mx-auto max-w-6xl px-5">
+                <div className="flex h-14 items-center justify-between">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2.5 group">
-                        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-accent-primary/10 border border-accent-primary/20 group-hover:bg-accent-primary/20 transition-colors">
-                            <GitBranch className="w-5 h-5 text-accent-primary" />
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="flex items-center justify-center w-7 h-7 rounded-md bg-emerald/10 border border-emerald/20 group-hover:bg-emerald/20 transition-all duration-200">
+                            <Terminal className="w-3.5 h-3.5 text-emerald" />
                         </div>
-                        <span className="text-xl font-bold tracking-tight">
-                            Trace<span className="gradient-text">on</span>
+                        <span className="text-[15px] font-semibold tracking-tight font-display text-text-0">
+                            traceon
                         </span>
                     </Link>
 
                     {/* Desktop Nav */}
-                    <div className="hidden md:flex items-center gap-8">
-                        <Link href="#features" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-                            Features
-                        </Link>
-                        <Link href="#how-it-works" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-                            How it works
-                        </Link>
-                        <Link href="#demo" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-                            Demo
-                        </Link>
+                    <div className="hidden md:flex items-center gap-1">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.label}
+                                href={link.href}
+                                className="px-3 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors rounded-md hover:bg-surface-2"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
                     </div>
 
                     {/* Desktop Actions */}
-                    <div className="hidden md:flex items-center gap-3">
-                        <Link href="/login" className="btn-secondary !py-2.5 !px-5 text-sm flex items-center gap-2">
-                            <LogIn className="w-4 h-4" />
-                            Login
+                    <div className="hidden md:flex items-center gap-2">
+                        <Link
+                            href="/login"
+                            className="px-3 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors"
+                        >
+                            Sign in
                         </Link>
-                        <Link href="/analyze" className="btn-primary !py-2.5 !px-5 text-sm">
-                            Try Free
+                        <Link
+                            href="/analyze"
+                            className="btn-cta !text-[13px] !py-1.5 !px-4"
+                        >
+                            Get Started
+                            <span className="kbd">⌘K</span>
                         </Link>
                     </div>
 
-                    {/* Mobile Menu Button */}
+                    {/* Mobile Toggle */}
                     <button
-                        className="md:hidden p-2 text-text-secondary hover:text-text-primary"
+                        className="md:hidden p-1.5 text-text-2 hover:text-text-0 rounded-md hover:bg-surface-2 transition-colors"
                         onClick={() => setMobileOpen(!mobileOpen)}
                         aria-label="Toggle menu"
                     >
-                        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                        {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
                     </button>
                 </div>
             </div>
 
             {/* Mobile Menu */}
             {mobileOpen && (
-                <div className="md:hidden border-t border-border bg-bg-primary/95 backdrop-blur-xl">
-                    <div className="px-4 py-4 space-y-3">
-                        <Link href="#features" className="block text-sm text-text-secondary hover:text-text-primary py-2">
-                            Features
-                        </Link>
-                        <Link href="#how-it-works" className="block text-sm text-text-secondary hover:text-text-primary py-2">
-                            How it works
-                        </Link>
-                        <Link href="#demo" className="block text-sm text-text-secondary hover:text-text-primary py-2">
-                            Demo
-                        </Link>
-                        <div className="pt-3 border-t border-border flex gap-3">
-                            <Link href="/login" className="btn-secondary !py-2.5 !px-5 text-sm flex-1 text-center">
-                                Login
+                <div className="md:hidden border-t border-stroke bg-surface-0/95 backdrop-blur-2xl">
+                    <div className="px-5 py-3 space-y-1">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.label}
+                                href={link.href}
+                                className="block px-3 py-2 text-sm text-text-2 hover:text-text-0 hover:bg-surface-2 rounded-md transition-colors"
+                                onClick={() => setMobileOpen(false)}
+                            >
+                                {link.label}
                             </Link>
-                            <Link href="/analyze" className="btn-primary !py-2.5 !px-5 text-sm flex-1 text-center">
-                                Try Free
+                        ))}
+                        <div className="pt-3 mt-2 border-t border-stroke flex gap-2">
+                            <Link
+                                href="/login"
+                                className="btn-ghost flex-1 justify-center !text-sm"
+                            >
+                                Sign in
+                            </Link>
+                            <Link
+                                href="/analyze"
+                                className="btn-cta flex-1 justify-center !text-sm"
+                            >
+                                Get Started
                             </Link>
                         </div>
                     </div>

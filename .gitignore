@@ -44,3 +44,9 @@ next-env.d.ts
 /required/
 /agents/
 /.agents/
+/agent/
+/.agent/
+/claude/
+/.claude/
+/trae/
+/.trae/
