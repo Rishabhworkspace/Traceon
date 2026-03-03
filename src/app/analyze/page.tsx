@@ -47,7 +47,7 @@ function AnalyzeContent() {
                 setTerminalLines(prev => [...prev, '→ Redirecting to Visualizer...']);
                 // Phase 6 Redirect
                 setTimeout(() => {
-                    // router.push(`/graph/${id}`); 
+                    router.push(`/graph/${id}`);
                 }, 1500);
             } else if (currentStatus === 'failed') {
                 setError(repository.errorMessage || 'Task aborted');
