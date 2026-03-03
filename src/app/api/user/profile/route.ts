@@ -65,12 +65,17 @@ export async function POST(req: Request) {
 
         await user.save();
 
+        // Prevent sending a massive base64 payload back to the client unless necessary
+        const safeImageReturn = user.image?.startsWith('data:image/')
+            ? `/api/user/avatar?t=${Date.now()}`
+            : user.image;
+
         return NextResponse.json({
             message: 'Profile updated successfully',
             user: {
                 name: user.name,
                 githubUsername: user.githubUsername,
-                image: user.image
+                image: safeImageReturn
             }
         });
 

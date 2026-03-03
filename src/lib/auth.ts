@@ -95,10 +95,16 @@ export const authOptions: NextAuthOptions = {
             return true;
         },
         async jwt({ token, user, account, trigger, session }) {
+            // Helper to prevent base64 encoding from bloating cookies
+            const getSafeImage = (img?: string | null) => {
+                if (!img) return undefined;
+                return img.startsWith('data:image/') ? '/api/user/avatar' : img;
+            };
+
             // Handle client-side session profile updates
             if (trigger === "update" && session) {
                 if (session.name) token.name = session.name;
-                if (session.image) token.image = session.image;
+                if (session.image) token.image = getSafeImage(session.image);
             }
 
             // Initial sign in
@@ -106,7 +112,7 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.name = user.name;
                 token.email = user.email;
-                token.image = user.image;
+                token.image = getSafeImage(user.image);
                 token.accessToken = account.access_token;
                 token.provider = account.provider;
                 return token;
@@ -117,7 +123,7 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.name = user.name;
                 token.email = user.email;
-                token.image = user.image;
+                token.image = getSafeImage(user.image);
             }
             return token;
         },
