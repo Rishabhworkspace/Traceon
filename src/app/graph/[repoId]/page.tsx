@@ -22,6 +22,7 @@ import CustomEdge from '@/components/graph/CustomEdge';
 import FileInspector from '@/components/graph/FileInspector';
 import GraphLegend from '@/components/graph/GraphLegend';
 import GraphToolbar from '@/components/graph/GraphToolbar';
+import ImpactPanel from '@/components/graph/ImpactPanel';
 
 interface APIGraphNode {
     id: string;
@@ -107,6 +108,7 @@ export default function GraphPage() {
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState<string | null>(null);
+    const [impactOpen, setImpactOpen] = useState(false);
 
     // Fetch graph data
     useEffect(() => {
@@ -257,6 +259,26 @@ export default function GraphPage() {
         return metrics.criticalModules.includes(selectedNode.id);
     }, [selectedNode, metrics]);
 
+    // Impact: highlight affected nodes on graph
+    const handleImpactHighlight = useCallback((nodeIds: string[]) => {
+        const set = new Set(nodeIds);
+        setNodes((nds) =>
+            nds.map((n) => ({
+                ...n,
+                data: { ...n.data, isHighlighted: set.has(n.id) },
+            }))
+        );
+    }, [setNodes]);
+
+    const handleClearImpactHighlight = useCallback(() => {
+        setNodes((nds) =>
+            nds.map((n) => ({
+                ...n,
+                data: { ...n.data, isHighlighted: false },
+            }))
+        );
+    }, [setNodes]);
+
     if (loading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: '#080808' }}>
@@ -351,12 +373,24 @@ export default function GraphPage() {
             {/* Legend */}
             <GraphLegend />
 
-            {/* File Inspector */}
-            <FileInspector
-                node={selectedNode}
-                isCritical={isCritical}
-                onClose={() => setSelectedNode(null)}
+            {/* Impact Panel */}
+            <ImpactPanel
+                repoId={repoId}
+                selectedNodeId={selectedNode?.id || null}
+                onHighlightNodes={handleImpactHighlight}
+                onClearHighlight={handleClearImpactHighlight}
+                isOpen={impactOpen}
+                onToggle={() => setImpactOpen((v) => !v)}
             />
+
+            {/* File Inspector (hidden when impact panel is open) */}
+            {!impactOpen && (
+                <FileInspector
+                    node={selectedNode}
+                    isCritical={isCritical}
+                    onClose={() => setSelectedNode(null)}
+                />
+            )}
         </div>
     );
 }

@@ -17,7 +17,7 @@
 | 4 | AST Parser Engine | ✅ Completed | Week 4 | ██████████ 100% |
 | 5 | Dependency Graph Builder | ✅ Completed | Week 5 | ██████████ 100% |
 | 6 | Interactive Visualization | ✅ Completed | Week 6 | ██████████ 100% |
-| 7 | Impact Analysis Engine | ⬜ Not Started | Week 7 | ░░░░░░░░░░ 0% |
+| 7 | Impact Analysis Engine | ✅ Completed | Week 7 | ██████████ 100% |
 | 8 | Dashboard, Polish & Deploy | ⬜ Not Started | Week 8 | ░░░░░░░░░░ 0% |
 
 ---
@@ -109,16 +109,16 @@
 - [x] Implement responsive graph layout
 
 ### Phase 7: Impact Analysis Engine (Week 7)
-- [ ] Implement reverse dependency traversal (BFS)
-- [ ] Calculate impact scores for each module
-- [ ] Build impact analysis API endpoint
-- [ ] Create impact analysis UI panel
-- [ ] Add risk level color coding (low/moderate/critical)
-- [ ] Show direct vs transitive dependencies
-- [ ] Generate impact summary report
-- [ ] Highlight affected nodes on the graph
-- [ ] Add "what-if" change simulation
-- [ ] Integrate impact view with graph viewer
+- [x] Implement reverse dependency traversal (BFS)
+- [x] Calculate impact scores for each module
+- [x] Build impact analysis API endpoint
+- [x] Create impact analysis UI panel
+- [x] Add risk level color coding (low/moderate/critical)
+- [x] Show direct vs transitive dependencies
+- [x] Generate impact summary report
+- [x] Highlight affected nodes on the graph
+- [x] Add "what-if" change simulation
+- [x] Integrate impact view with graph viewer
 
 ### Phase 8: Dashboard, Polish & Deployment (Week 8)
 - [ ] Build dashboard metrics cards
