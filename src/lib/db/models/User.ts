@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IUser extends Document {
     email: string;
-    passwordHash: string;
+    passwordHash?: string;
     name: string;
     createdAt: Date;
     updatedAt: Date;
@@ -19,7 +19,6 @@ const UserSchema = new Schema<IUser>(
         },
         passwordHash: {
             type: String,
-            required: [true, 'Password is required'],
             select: false, // Security best practice from MongoDB skills
         },
         name: {
@@ -33,7 +32,7 @@ const UserSchema = new Schema<IUser>(
     }
 );
 
-UserSchema.index({ email: 1 });
+// Index automatically created by unique: true on email
 
 const User: Model<IUser> =
     mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

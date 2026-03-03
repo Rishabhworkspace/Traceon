@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { Loader2, Terminal, CheckCircle2, AlertCircle } from 'lucide-react';
 
 type AnalyzingState = 'initializing' | 'cloning' | 'scanning' | 'parsing' | 'analyzing' | 'complete' | 'failed';
@@ -16,7 +16,7 @@ const STATUS_MESSAGES: Record<AnalyzingState, string> = {
     failed: 'Analysis failed.',
 };
 
-export default function AnalyzePage() {
+function AnalyzeContent() {
     const searchParams = useSearchParams();
     const repoUrl = searchParams.get('url');
     const router = useRouter();
@@ -190,5 +190,18 @@ export default function AnalyzePage() {
 
             </div>
         </div>
+    );
+}
+
+export default function AnalyzePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen pt-32 pb-16 flex flex-col items-center justify-center text-center">
+                <Loader2 className="w-8 h-8 text-emerald animate-spin mb-4" />
+                <h2 className="text-xl font-mono text-text-2">Initializing Traceon Engine...</h2>
+            </div>
+        }>
+            <AnalyzeContent />
+        </Suspense>
     );
 }

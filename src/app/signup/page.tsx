@@ -5,7 +5,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Loader2, UserPlus } from 'lucide-react';
+import { ArrowRight, Loader2, UserPlus, Github, Chrome } from 'lucide-react';
 
 export default function SignupPage() {
     const router = useRouter();
@@ -164,7 +164,35 @@ export default function SignupPage() {
                         </button>
                     </form>
 
-                    <div className="mt-6 text-center text-sm">
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-stroke"></div>
+                        </div>
+                        <div className="relative flex justify-center text-[10px] font-mono uppercase tracking-widest text-text-3 px-3">
+                            <span className="bg-surface-0 px-2">Or continue with</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                        <button
+                            type="button"
+                            onClick={() => signIn('github', { callbackUrl: '/' })}
+                            className="flex items-center justify-center gap-2 py-2.5 rounded-md border border-stroke bg-surface-1 hover:bg-surface-2 transition-colors text-xs font-mono"
+                        >
+                            <Github className="w-4 h-4" />
+                            GitHub
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => signIn('google', { callbackUrl: '/' })}
+                            className="flex items-center justify-center gap-2 py-2.5 rounded-md border border-stroke bg-surface-1 hover:bg-surface-2 transition-colors text-xs font-mono"
+                        >
+                            <Chrome className="w-4 h-4" />
+                            Google
+                        </button>
+                    </div>
+
+                    <div className="mt-2 text-center text-sm">
                         <span className="text-text-3">Already have an account? </span>
                         <Link
                             href="/login"
