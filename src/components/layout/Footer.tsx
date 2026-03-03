@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Terminal, Github, Twitter } from 'lucide-react';
+import Image from 'next/image';
+import { Github, Twitter } from 'lucide-react';
 
 const footerLinks = {
     Product: [
@@ -22,9 +23,13 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="col-span-2">
                         <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
-                            <div className="flex items-center justify-center w-6 h-6 rounded-md bg-emerald/10 border border-emerald/20">
-                                <Terminal className="w-3 h-3 text-emerald" />
-                            </div>
+                            <Image
+                                src="/logo.png"
+                                alt="Traceon Logo"
+                                width={24}
+                                height={24}
+                                className="rounded-md"
+                            />
                             <span className="text-sm font-semibold font-display text-text-0">
                                 traceon
                             </span>

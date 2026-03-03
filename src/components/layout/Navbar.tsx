@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
-import { Menu, X, Terminal, LogOut } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 const navLinks = [
-    { label: 'Features', href: '#features' },
-    { label: 'How it Works', href: '#how-it-works' },
+    { label: 'Features', href: '/#features' },
+    { label: 'How it Works', href: '/#how-it-works' },
     { label: 'Docs', href: '/docs' },
 ];
 
@@ -21,9 +22,13 @@ export default function Navbar() {
                 <div className="flex h-14 items-center justify-between">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="flex items-center justify-center w-7 h-7 rounded-md bg-emerald/10 border border-emerald/20 group-hover:bg-emerald/20 transition-all duration-200">
-                            <Terminal className="w-3.5 h-3.5 text-emerald" />
-                        </div>
+                        <Image
+                            src="/logo.png"
+                            alt="Traceon Logo"
+                            width={28}
+                            height={28}
+                            className="rounded-md group-hover:opacity-80 transition-opacity"
+                        />
                         <span className="text-[15px] font-semibold tracking-tight font-display text-text-0">
                             traceon
                         </span>
