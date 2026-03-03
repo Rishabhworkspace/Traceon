@@ -13,8 +13,8 @@
 | 0 | Planning & Documentation | ✅ Completed | Week 0 | ██████████ 100% |
 | 1 | Foundation & Project Setup | ✅ Completed | Week 1 | ██████████ 100% |
 | 2 | Authentication System | ✅ Completed | Week 2 | ██████████ 100% |
-| 3 | Repository Ingestion | 🟡 In Progress | Week 3 | ░░░░░░░░░░ 0% |
-| 4 | AST Parser Engine | ⬜ Not Started | Week 4 | ░░░░░░░░░░ 0% |
+| 3 | Repository Ingestion | ✅ Completed | Week 3 | ██████████ 100% |
+| 4 | AST Parser Engine | 🟡 In Progress | Week 4 | ░░░░░░░░░░ 0% |
 | 5 | Dependency Graph Builder | ⬜ Not Started | Week 5 | ░░░░░░░░░░ 0% |
 | 6 | Interactive Visualization | ⬜ Not Started | Week 6 | ░░░░░░░░░░ 0% |
 | 7 | Impact Analysis Engine | ⬜ Not Started | Week 7 | ░░░░░░░░░░ 0% |
@@ -61,28 +61,28 @@
 - [x] Add error handling for auth flows
 
 ### Phase 3: Repository Ingestion (Week 3)
-- [ ] Build Repository URL input component
-- [ ] Implement GitHub URL validation
-- [ ] Create secure repository cloning service (`simple-git`)
-- [ ] Build file scanner to walk directory trees
-- [ ] Implement file filtering (ignore `node_modules`, `.git`, etc.)
-- [ ] Create `POST /api/analyze` endpoint
-- [ ] Create Repository model in MongoDB
-- [ ] Implement temp storage for guest analysis
-- [ ] Build analysis progress indicator UI
-- [ ] Add error handling for clone failures
+- [x] Build Repository URL input component
+- [x] Implement GitHub URL validation
+- [x] Create secure repository cloning service (`simple-git`)
+- [x] Build file scanner to walk directory trees
+- [x] Implement file filtering (ignore `node_modules`, `.git`, etc.)
+- [x] Create `POST /api/analyze` endpoint
+- [x] Create Repository model in MongoDB
+- [x] Implement temp storage for guest analysis
+- [x] Build analysis progress indicator UI
+- [x] Add error handling for clone failures
 
 ### Phase 4: AST Parser Engine (Week 4)
-- [ ] Install and configure Tree-sitter (WASM)
-- [ ] Build JS/TS language parser
-- [ ] Extract import statements from AST
-- [ ] Extract export statements from AST
-- [ ] Extract function/class declarations
-- [ ] Build file metadata collector
-- [ ] Create File model in MongoDB
+- [x] Integrate TypeScript Compiler API (alternative to Tree-sitter WASM)
+- [x] Build JS/TS language parser
+- [x] Extract import statements from AST
+- [x] Extract export statements from AST
+- [x] Extract function/class declarations
+- [x] Build file metadata collector
+- [x] Create File model in MongoDB
 - [ ] Set up Worker Threads for CPU-intensive parsing
-- [ ] Add batch parsing for large repositories
-- [ ] Implement parse error handling and recovery
+- [x] Add batch parsing for large repositories
+- [x] Implement parse error handling and recovery
 
 ### Phase 5: Dependency Graph Builder (Week 5)
 - [ ] Resolve import paths to actual files
