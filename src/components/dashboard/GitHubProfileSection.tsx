@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Github, Star, Terminal } from 'lucide-react';
+import { Github, Star, Terminal, Link as LinkIcon, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -32,32 +32,35 @@ export default function GitHubProfileSection() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [analyzingRepo, setAnalyzingRepo] = useState<string | null>(null);
+    const [githubUsername, setGithubUsername] = useState('');
+    const [isLinking, setIsLinking] = useState(false);
     const router = useRouter();
 
-    useEffect(() => {
-        const fetchGitHubData = async () => {
-            try {
-                const res = await fetch('/api/github');
-                if (!res.ok) {
-                    throw new Error('Failed to fetch GitHub data');
-                }
-                const json = await res.json();
-                console.log('GitHub API response:', json);
-                // The API returns a message 'No GitHub connection available' if the user isn't logged in with GitHub
-                if (json.message && (json.message === 'No GitHub connection available' || json.message === 'Unauthorized')) {
-                    setData(null);
-                } else {
-                    setData(json);
-                }
-            } catch (err: unknown) {
-                console.error('Error fetching GitHub profile:', err);
-                const msg = err instanceof Error ? err.message : 'Failed to fetch GitHub profile';
-                setError(msg);
-            } finally {
-                setLoading(false);
+    const fetchGitHubData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const res = await fetch('/api/github');
+            if (!res.ok) {
+                throw new Error('Failed to fetch GitHub data');
             }
-        };
+            const json = await res.json();
+            // The API returns a message 'No GitHub connection available' if the user isn't logged in with GitHub
+            if (json.message && (json.message === 'No GitHub connection available' || json.message === 'Unauthorized')) {
+                setData({ message: json.message, repos: [], starred: [] });
+            } else {
+                setData(json);
+            }
+        } catch (err: unknown) {
+            console.error('Error fetching GitHub profile:', err);
+            const msg = err instanceof Error ? err.message : 'Failed to fetch GitHub profile';
+            setError(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchGitHubData();
     }, []);
 
@@ -94,6 +97,35 @@ export default function GitHubProfileSection() {
         }
     };
 
+    const handleLinkGitHub = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!githubUsername.trim()) return;
+
+        setIsLinking(true);
+        setError(null);
+
+        try {
+            const res = await fetch('/api/user/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ githubUsername: githubUsername.trim() }),
+            });
+
+            if (!res.ok) {
+                const json = await res.json();
+                throw new Error(json.message || 'Failed to link GitHub account');
+            }
+
+            // Immediately refetch data which will now use the unauthenticated fallback
+            await fetchGitHubData();
+        } catch (err: unknown) {
+            console.error('Error linking GitHub:', err);
+            setError(err instanceof Error ? err.message : 'Failed to link GitHub account');
+        } finally {
+            setIsLinking(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="w-full flex justify-center py-12">
@@ -105,16 +137,64 @@ export default function GitHubProfileSection() {
         );
     }
 
-    if (error) {
+    // Empty state: show connect UI
+    if (data?.message === 'No GitHub connection available' || (!data?.repos?.length && !data?.starred?.length)) {
         return (
-            <div className="w-full p-4 border border-rose/20 bg-rose/5 rounded-xl text-rose font-mono text-sm">
-                ! Error: {error}
+            <div className="card p-6 border-stroke mt-8">
+                <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-surface-1 border border-stroke flex items-center justify-center shrink-0">
+                        <Github className="w-6 h-6 text-text-2" />
+                    </div>
+                    <div className="flex-1 space-y-4">
+                        <div>
+                            <h2 className="text-lg font-mono text-text-0 mb-1">Connect GitHub Profile</h2>
+                            <p className="text-sm text-text-2 leading-relaxed">
+                                Link your GitHub username to quickly analyze your public repositories and stars directly from your dashboard.
+                            </p>
+                        </div>
+
+                        {error && (
+                            <div className="flex items-center gap-2 text-rose text-sm font-mono bg-rose/5 p-3 rounded-lg border border-rose/10">
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                <p>{error}</p>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleLinkGitHub} className="flex gap-3 max-w-md">
+                            <input
+                                type="text"
+                                value={githubUsername}
+                                onChange={(e) => setGithubUsername(e.target.value)}
+                                placeholder="Enter GitHub username..."
+                                required
+                                disabled={isLinking}
+                                className="flex-1 bg-surface-0 border border-stroke rounded-lg px-4 py-2 text-sm font-mono text-text-0 placeholder:text-text-3 outline-none focus:border-emerald transition-colors disabled:opacity-50"
+                            />
+                            <button
+                                type="submit"
+                                disabled={isLinking || !githubUsername.trim()}
+                                className="btn-cta !px-6 !py-2 !text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {isLinking ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-surface-0 border-t-transparent rounded-full animate-spin" />
+                                        Linking...
+                                    </>
+                                ) : (
+                                    <>
+                                        <LinkIcon className="w-4 h-4" />
+                                        Connect
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                        <p className="text-xs text-text-3 font-mono">
+                            This allows Traceon to fetch your public data. Log in with GitHub to access private repositories.
+                        </p>
+                    </div>
+                </div>
             </div>
         );
-    }
-
-    if (!data || (!data.repos?.length && !data.starred?.length)) {
-        return null; // Silent skip if no git data exists or they didn't login with GH
     }
 
     return (

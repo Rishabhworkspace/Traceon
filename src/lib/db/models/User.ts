@@ -4,6 +4,7 @@ export interface IUser extends Document {
     email: string;
     passwordHash?: string;
     name: string;
+    githubUsername?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -25,6 +26,11 @@ const UserSchema = new Schema<IUser>(
             type: String,
             required: [true, 'Name is required'],
             trim: true,
+        },
+        githubUsername: {
+            type: String,
+            trim: true,
+            sparse: true, // Use sparse index since many users won't have it initially
         },
     },
     {
