@@ -3,6 +3,7 @@ import { DM_Sans, Syne, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -54,9 +55,11 @@ export default function RootLayout({
       <body
         className={`${dmSans.variable} ${syne.variable} ${firaCode.variable} antialiased`}
       >
-        <Navbar />
-        <main className="min-h-screen pt-14">{children}</main>
-        <Footer />
+        <NextAuthProvider>
+          <Navbar />
+          <main className="min-h-screen pt-14">{children}</main>
+          <Footer />
+        </NextAuthProvider>
       </body>
     </html>
   );

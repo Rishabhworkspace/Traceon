@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, Terminal } from 'lucide-react';
+import { Menu, X, Terminal, LogOut } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 
 const navLinks = [
     { label: 'Features', href: '#features' },
@@ -12,6 +13,7 @@ const navLinks = [
 
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { data: session, status } = useSession();
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 border-b border-stroke bg-surface-0/70 backdrop-blur-2xl">
@@ -41,20 +43,42 @@ export default function Navbar() {
                     </div>
 
                     {/* Desktop Actions */}
-                    <div className="hidden md:flex items-center gap-2">
-                        <Link
-                            href="/login"
-                            className="px-3 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors"
-                        >
-                            Sign in
-                        </Link>
-                        <Link
-                            href="/analyze"
-                            className="btn-cta !text-[13px] !py-1.5 !px-4"
-                        >
-                            Get Started
-                            <span className="kbd">⌘K</span>
-                        </Link>
+                    <div className="hidden md:flex items-center gap-2 text-sm font-medium">
+                        {status === 'loading' ? (
+                            <div className="w-20 h-8 rounded bg-surface-2 animate-pulse" />
+                        ) : session ? (
+                            <>
+                                <Link
+                                    href="/dashboard"
+                                    className="px-3 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors"
+                                >
+                                    Dashboard
+                                </Link>
+                                <button
+                                    onClick={() => signOut()}
+                                    className="px-3 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors flex items-center gap-1.5"
+                                >
+                                    <LogOut className="w-3.5 h-3.5" />
+                                    <span>Sign out</span>
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    href="/login"
+                                    className="px-3 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors"
+                                >
+                                    Sign in
+                                </Link>
+                                <Link
+                                    href="/analyze"
+                                    className="btn-cta !text-[13px] !py-1.5 !px-4"
+                                >
+                                    Get Started
+                                    <span className="kbd">⌘K</span>
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Toggle */}
@@ -82,19 +106,41 @@ export default function Navbar() {
                                 {link.label}
                             </Link>
                         ))}
-                        <div className="pt-3 mt-2 border-t border-stroke flex gap-2">
-                            <Link
-                                href="/login"
-                                className="btn-ghost flex-1 justify-center !text-sm"
-                            >
-                                Sign in
-                            </Link>
-                            <Link
-                                href="/analyze"
-                                className="btn-cta flex-1 justify-center !text-sm"
-                            >
-                                Get Started
-                            </Link>
+                        <div className="pt-3 mt-2 border-t border-stroke flex flex-col gap-2">
+                            {status === 'loading' ? (
+                                <div className="h-9 w-full rounded bg-surface-2 animate-pulse" />
+                            ) : session ? (
+                                <>
+                                    <Link
+                                        href="/dashboard"
+                                        className="btn-ghost flex justify-center !text-sm w-full"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <button
+                                        onClick={() => signOut()}
+                                        className="btn-ghost flex justify-center items-center gap-2 !text-sm w-full"
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        Sign out
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/login"
+                                        className="btn-ghost flex justify-center !text-sm w-full"
+                                    >
+                                        Sign in
+                                    </Link>
+                                    <Link
+                                        href="/analyze"
+                                        className="btn-cta flex justify-center !text-sm w-full"
+                                    >
+                                        Get Started
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
