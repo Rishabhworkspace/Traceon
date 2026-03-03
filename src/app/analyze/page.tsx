@@ -23,7 +23,6 @@ function AnalyzeContent() {
 
     const [status, setStatus] = useState<AnalyzingState>('initializing');
     const [error, setError] = useState<string | null>(null);
-    const [fileCount, setFileCount] = useState<number>(0);
 
     // Track lines purely for the terminal effect UI
     const [terminalLines, setTerminalLines] = useState<string[]>([]);
@@ -42,7 +41,6 @@ function AnalyzeContent() {
             const currentStatus = repository.status as AnalyzingState;
 
             setStatus(currentStatus);
-            setFileCount((prev) => repository.fileCount > prev ? repository.fileCount : prev);
 
             if (currentStatus === 'complete') {
                 setTerminalLines(prev => [...prev, `✓ AST generation done. Detected ${repository.fileCount} source files.`]);

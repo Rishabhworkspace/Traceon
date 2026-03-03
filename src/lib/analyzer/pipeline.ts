@@ -1,7 +1,6 @@
 import dbConnect from '@/lib/db/connection';
 import Repository from '@/lib/db/models/Repository';
 import File from '@/lib/db/models/File';
-import { cloneRepository } from '@/lib/analyzer/clone';
 import { scanDirectory } from '@/lib/analyzer/scanner';
 import { parseFileContent } from '@/lib/analyzer/parser';
 import fs from 'fs/promises';

@@ -17,7 +17,7 @@ export async function POST(req: Request) {
         // Parse the multipart form data
         const formData = await req.formData();
         const file = formData.get('file') as File | null;
-        let clientSessionId = formData.get('sessionId') as string | null;
+        const clientSessionId = formData.get('sessionId') as string | null;
 
         if (!file) {
             return NextResponse.json({ message: 'ZIP file is required' }, { status: 400 });

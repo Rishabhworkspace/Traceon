@@ -3,14 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/connection';
 import Repository from '@/lib/db/models/Repository';
-import File from '@/lib/db/models/File';
 import { cloneRepository } from '@/lib/analyzer/clone';
-import { scanDirectory } from '@/lib/analyzer/scanner';
-import { parseFileContent } from '@/lib/analyzer/parser';
 import { runAnalysisPipeline } from '@/lib/analyzer/pipeline';
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs/promises';
-import path from 'path';
 
 export async function POST(req: Request) {
     try {

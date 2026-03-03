@@ -82,8 +82,9 @@ export function HeroSection() {
             if (!res.ok) throw new Error(data.message || 'Error initializing analysis');
 
             router.push(`/analyze?id=${data.repositoryId}`);
-        } catch (err: any) {
-            setSubmitError(err.message || 'Failed to analyze repository');
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Failed to analyze repository';
+            setSubmitError(msg);
             setIsSubmitting(false);
         }
     };
@@ -114,8 +115,9 @@ export function HeroSection() {
             if (!res.ok) throw new Error(data.message || 'Error uploading file');
 
             router.push(`/analyze?id=${data.repositoryId}`);
-        } catch (err: any) {
-            setSubmitError(err.message || 'Failed to upload repository');
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Failed to upload repository';
+            setSubmitError(msg);
             setIsSubmitting(false);
         }
     };

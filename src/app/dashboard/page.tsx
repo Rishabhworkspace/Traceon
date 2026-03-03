@@ -33,7 +33,7 @@ export default async function DashboardPage() {
                             <div className="p-8 border border-dashed border-stroke rounded-xl flex flex-col items-center justify-center text-center bg-surface-1/50">
                                 <Terminal className="w-8 h-8 text-text-3 mb-3" />
                                 <p className="text-text-2 font-mono text-sm">
-                                    You haven't analyzed any repositories yet.
+                                    You haven&apos;t analyzed any repositories yet.
                                 </p>
                                 <Link href="/" className="btn-cta mt-4 !py-2 !text-sm">
                                     Start new analysis
