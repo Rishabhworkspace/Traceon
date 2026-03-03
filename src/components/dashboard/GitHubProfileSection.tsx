@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Github, Star, Terminal, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { Github, Star, Terminal, Link as LinkIcon, AlertCircle, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -34,6 +34,11 @@ export default function GitHubProfileSection() {
     const [analyzingRepo, setAnalyzingRepo] = useState<string | null>(null);
     const [githubUsername, setGithubUsername] = useState('');
     const [isLinking, setIsLinking] = useState(false);
+
+    // Pagination state
+    const [visibleRepos, setVisibleRepos] = useState(6);
+    const [visibleStarred, setVisibleStarred] = useState(6);
+
     const router = useRouter();
 
     const fetchGitHubData = async () => {
@@ -207,7 +212,7 @@ export default function GitHubProfileSection() {
                         <h2 className="text-xl font-mono text-text-0">Your Repositories</h2>
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
-                        {data.repos.map((repo) => (
+                        {data.repos.slice(0, visibleRepos).map((repo) => (
                             <RepoCard
                                 key={`owned-${repo.id}`}
                                 repo={repo}
@@ -216,6 +221,17 @@ export default function GitHubProfileSection() {
                             />
                         ))}
                     </div>
+                    {data.repos.length > visibleRepos && (
+                        <div className="flex justify-center mt-6">
+                            <button
+                                onClick={() => setVisibleRepos(prev => prev + 6)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-stroke bg-surface-1 hover:bg-surface-2 transition-colors text-sm font-mono text-text-1"
+                            >
+                                Show More
+                                <ChevronDown className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -227,7 +243,7 @@ export default function GitHubProfileSection() {
                         <h2 className="text-xl font-mono text-text-0">Starred Repositories</h2>
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
-                        {data.starred.map((repo) => (
+                        {data.starred.slice(0, visibleStarred).map((repo) => (
                             <RepoCard
                                 key={`starred-${repo.id}`}
                                 repo={repo}
@@ -236,6 +252,17 @@ export default function GitHubProfileSection() {
                             />
                         ))}
                     </div>
+                    {data.starred.length > visibleStarred && (
+                        <div className="flex justify-center mt-6">
+                            <button
+                                onClick={() => setVisibleStarred(prev => prev + 6)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-stroke bg-surface-1 hover:bg-surface-2 transition-colors text-sm font-mono text-text-1"
+                            >
+                                Show More
+                                <ChevronDown className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

@@ -42,6 +42,7 @@ export const authOptions: NextAuthOptions = {
                     id: user._id.toString(),
                     email: user.email,
                     name: user.name,
+                    image: user.image,
                 };
             },
         }),
@@ -74,11 +75,17 @@ export const authOptions: NextAuthOptions = {
                         dbUser = await User.create({
                             email: user.email,
                             name: user.name || 'Developer',
+                            image: user.image,
                         });
+                    } else if (user.image && !dbUser.image) {
+                        dbUser.image = user.image;
+                        await dbUser.save();
                     }
 
                     // Attach the MongoDB ID to the user object, which is passed to the JWT callback
                     user.id = dbUser._id.toString();
+                    user.name = dbUser.name;
+                    user.image = dbUser.image;
                     return true;
                 } catch (error) {
                     console.error("Error creating user during OAuth sign in:", error);
@@ -87,12 +94,19 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, user, account }) {
+        async jwt({ token, user, account, trigger, session }) {
+            // Handle client-side session profile updates
+            if (trigger === "update" && session) {
+                if (session.name) token.name = session.name;
+                if (session.image) token.image = session.image;
+            }
+
             // Initial sign in
             if (account && user) {
                 token.id = user.id;
                 token.name = user.name;
                 token.email = user.email;
+                token.image = user.image;
                 token.accessToken = account.access_token;
                 token.provider = account.provider;
                 return token;
@@ -103,6 +117,7 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.name = user.name;
                 token.email = user.email;
+                token.image = user.image;
             }
             return token;
         },
@@ -111,6 +126,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.id = token.id as string;
                 session.user.name = token.name as string;
                 session.user.email = token.email as string;
+                session.user.image = token.image as string | undefined;
                 session.user.accessToken = token.accessToken as string | undefined;
                 session.user.provider = token.provider as string | undefined;
             }

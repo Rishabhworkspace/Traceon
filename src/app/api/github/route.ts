@@ -41,13 +41,13 @@ export async function GET() {
             };
 
             // Fetch user's own repositories
-            const reposResponse = await fetch(`${GITHUB_API_URL}/user/repos?sort=updated&per_page=6&affiliation=owner,collaborator`, {
+            const reposResponse = await fetch(`${GITHUB_API_URL}/user/repos?sort=updated&per_page=100&affiliation=owner,collaborator`, {
                 headers,
                 next: { revalidate: 60 * 5 } // Cache for 5 minutes
             });
 
             // Fetch user's starred repositories
-            const starredResponse = await fetch(`${GITHUB_API_URL}/user/starred?sort=created&per_page=6`, {
+            const starredResponse = await fetch(`${GITHUB_API_URL}/user/starred?sort=created&per_page=100`, {
                 headers,
                 next: { revalidate: 60 * 5 }
             });
@@ -78,12 +78,12 @@ export async function GET() {
             };
 
             // Unauthenticated requests for public repos
-            const reposResponse = await fetch(`${GITHUB_API_URL}/users/${username}/repos?sort=updated&per_page=6`, {
+            const reposResponse = await fetch(`${GITHUB_API_URL}/users/${username}/repos?sort=updated&per_page=100`, {
                 headers,
                 next: { revalidate: 60 * 5 }
             });
 
-            const starredResponse = await fetch(`${GITHUB_API_URL}/users/${username}/starred?sort=created&per_page=6`, {
+            const starredResponse = await fetch(`${GITHUB_API_URL}/users/${username}/starred?sort=created&per_page=100`, {
                 headers,
                 next: { revalidate: 60 * 5 }
             });

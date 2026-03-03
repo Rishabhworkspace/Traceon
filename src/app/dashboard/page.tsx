@@ -94,6 +94,11 @@ export default async function DashboardPage() {
                                 </p>
                             </div>
                         </div>
+                        <div className="mt-6 pt-6 border-t border-stroke">
+                            <Link href="/profile" className="btn-secondary w-full justify-center">
+                                Edit Profile
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

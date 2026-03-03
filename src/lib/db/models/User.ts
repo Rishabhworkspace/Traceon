@@ -5,6 +5,7 @@ export interface IUser extends Document {
     passwordHash?: string;
     name: string;
     githubUsername?: string;
+    image?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -31,6 +32,9 @@ const UserSchema = new Schema<IUser>(
             type: String,
             trim: true,
             sparse: true, // Use sparse index since many users won't have it initially
+        },
+        image: {
+            type: String,
         },
     },
     {
