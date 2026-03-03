@@ -1,10 +1,25 @@
 import dbConnect from '@/lib/db/connection';
 import Repository from '@/lib/db/models/Repository';
-import File from '@/lib/db/models/File';
+import File, { IFile } from '@/lib/db/models/File';
+import AnalysisResult from '@/lib/db/models/AnalysisResult';
 import { scanDirectory } from '@/lib/analyzer/scanner';
-import { parseFileContent } from '@/lib/analyzer/parser';
-import fs from 'fs/promises';
-import path from 'path';
+import { calculateGraph } from '@/lib/analyzer/graph/builder';
+import path from 'node:path';
+import os from 'node:os';
+
+interface WorkerFileResult {
+    path: string;
+    name: string;
+    extension: string;
+    loc: number;
+    error: string | null;
+    parsed: {
+        imports: string[];
+        exports: string[];
+        functions: string[];
+        classes: string[];
+    };
+}
 
 export async function runAnalysisPipeline(repoId: string, repoPath: string, cleanupFunction?: (() => Promise<void>) | null) {
     try {
@@ -24,47 +39,80 @@ export async function runAnalysisPipeline(repoId: string, repoPath: string, clea
             fileCount: scannedFiles.length,
         });
 
+        const filesToProcess = scannedFiles.filter(f => PARSING_EXTENSIONS.has(f.extension)).map(f => ({
+            ...f,
+            fullPath: path.join(repoPath, f.path)
+        }));
+        const otherFiles = scannedFiles.filter(f => !PARSING_EXTENSIONS.has(f.extension));
+
+        // Group files into chunks for workers
+        const numWorkers = Math.min(os.cpus().length, 4) || 1;
+        const workerChunkSize = Math.max(1, Math.ceil(filesToProcess.length / numWorkers));
+        const chunks = [];
+        for (let i = 0; i < filesToProcess.length; i += workerChunkSize) {
+            chunks.push(filesToProcess.slice(i, i + workerChunkSize));
+        }
+
+        const workerPromises = chunks.map((chunk) => {
+            return new Promise<WorkerFileResult[]>(async (resolve, reject) => {
+                try {
+                    // Dynamically eval to completely bypass Turbopack's static analysis crashing on worker_threads
+                    // eslint-disable-next-line @typescript-eslint/no-var-requires
+                    const { Worker } = eval('require("node:worker_threads")');
+
+                    const workerPath = path.resolve(process.cwd(), 'workers/parse-worker.js');
+                    const worker = new Worker(workerPath, {
+                        workerData: { files: chunk }
+                    });
+
+                    worker.on('message', resolve);
+                    worker.on('error', reject);
+                    worker.on('exit', (code: number) => {
+                        if (code !== 0) reject(new Error(`Worker stopped with exit code ${code}`));
+                    });
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        });
+
+        const workerResults = await Promise.all(workerPromises);
+        const parsedFilesData = workerResults.flat();
+
         const filesToInsert = [];
 
-        for (const file of scannedFiles) {
-            let loc = 0;
-            let imports: string[] = [];
-            let exports: string[] = [];
-            let functions: string[] = [];
-            let classes: string[] = [];
-
-            try {
-                const fullPath = path.join(repoPath, file.path);
-
-                // Read and parse only JS/TS code files
-                if (PARSING_EXTENSIONS.has(file.extension)) {
-                    const content = await fs.readFile(fullPath, 'utf-8');
-                    const parsed = parseFileContent(content, file.name);
-
-                    loc = parsed.loc;
-                    imports = parsed.imports;
-                    exports = parsed.exports;
-                    functions = parsed.functions;
-                    classes = parsed.classes;
-                } else {
-                    // Just count lines for other files if needed, or leave at 0
-                    loc = 0;
-                }
-            } catch (err) {
-                console.warn(`Failed to parse file ${file.path}:`, err);
+        // Add the parsed files
+        for (const data of parsedFilesData) {
+            if (data.error) {
+                console.warn(`Worker failed to parse file ${data.path}:`, data.error);
             }
+            filesToInsert.push({
+                repositoryId: repoId,
+                path: data.path,
+                name: data.name,
+                extension: data.extension,
+                type: 'file',
+                loc: data.loc || 0,
+                imports: data.parsed.imports,
+                exports: data.parsed.exports,
+                functions: data.parsed.functions,
+                classes: data.parsed.classes,
+            });
+        }
 
+        // Add the unparsed files (just basic metadata)
+        for (const file of otherFiles) {
             filesToInsert.push({
                 repositoryId: repoId,
                 path: file.path,
                 name: file.name,
                 extension: file.extension,
                 type: 'file',
-                loc,
-                imports,
-                exports,
-                functions,
-                classes,
+                loc: 0,
+                imports: [],
+                exports: [],
+                functions: [],
+                classes: [],
             });
         }
 
@@ -75,6 +123,16 @@ export async function runAnalysisPipeline(repoId: string, repoPath: string, clea
                 await File.insertMany(filesToInsert.slice(i, i + chunkSize));
             }
         }
+
+        // 6. Build the Dependency Graph and compute metrics
+        const graphData = calculateGraph(filesToInsert as unknown as IFile[]);
+
+        await AnalysisResult.create({
+            repositoryId: repoId,
+            nodes: graphData.nodes,
+            edges: graphData.edges,
+            metrics: graphData.metrics,
+        });
 
         await Repository.findByIdAndUpdate(repoId, {
             status: 'complete',
