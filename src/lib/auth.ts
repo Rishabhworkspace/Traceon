@@ -48,6 +48,11 @@ export const authOptions: NextAuthOptions = {
         GithubProvider({
             clientId: process.env.GITHUB_ID as string,
             clientSecret: process.env.GITHUB_SECRET as string,
+            authorization: {
+                params: {
+                    scope: 'read:user user:email public_repo',
+                },
+            },
         }),
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -82,7 +87,18 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, account }) {
+            // Initial sign in
+            if (account && user) {
+                token.id = user.id;
+                token.name = user.name;
+                token.email = user.email;
+                token.accessToken = account.access_token;
+                token.provider = account.provider;
+                return token;
+            }
+
+            // Return previous token if user is not provided
             if (user) {
                 token.id = user.id;
                 token.name = user.name;
@@ -95,6 +111,8 @@ export const authOptions: NextAuthOptions = {
                 session.user.id = token.id as string;
                 session.user.name = token.name as string;
                 session.user.email = token.email as string;
+                session.user.accessToken = token.accessToken as string | undefined;
+                session.user.provider = token.provider as string | undefined;
             }
             return session;
         },

@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Terminal, History, Settings } from 'lucide-react';
+import GitHubProfileSection from '@/components/dashboard/GitHubProfileSection';
 import Link from 'next/link';
 import dbConnect from '@/lib/db/connection';
 import Repository, { IRepository } from '@/lib/db/models/Repository';
@@ -66,6 +67,9 @@ export default async function DashboardPage() {
                             </div>
                         )}
                     </div>
+
+                    {/* Render GitHub profile integration dynamically */}
+                    <GitHubProfileSection />
                 </div>
 
                 <div className="space-y-6">
