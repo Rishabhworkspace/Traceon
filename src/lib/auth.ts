@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
                     id: user._id.toString(),
                     email: user.email,
                     name: user.name,
-                    image: user.image,
+                    image: user.image?.startsWith('data:image/') ? '/api/user/avatar' : user.image,
                 };
             },
         }),
@@ -82,10 +82,10 @@ export const authOptions: NextAuthOptions = {
                         await dbUser.save();
                     }
 
-                    // Attach the MongoDB ID to the user object, which is passed to the JWT callback
+                    // Attach only necessary small data to the user object passed to callbacks
                     user.id = dbUser._id.toString();
                     user.name = dbUser.name;
-                    user.image = dbUser.image;
+                    user.image = dbUser.image?.startsWith('data:image/') ? '/api/user/avatar' : dbUser.image;
                     return true;
                 } catch (error) {
                     console.error("Error creating user during OAuth sign in:", error);
@@ -95,27 +95,37 @@ export const authOptions: NextAuthOptions = {
             return true;
         },
         async jwt({ token, user, account, trigger, session }) {
-            // Helper to prevent base64 encoding from bloating cookies
-            const getSafeImage = (img?: string | null) => {
-                if (!img) return undefined;
-                return img.startsWith('data:image/') ? '/api/user/avatar' : img;
-            };
+            // Scorched-earth safeguard: truncate ANY property longer than 2000 chars to protect cookies
+            Object.keys(token).forEach(key => {
+                const val = token[key];
+                if (typeof val === 'string' && val.length > 2000) {
+                    console.log(`[NextAuth JWT Safeguard] Truncating massive field: ${key} (${val.length} chars)`);
+                    token[key] = val.startsWith('data:image/') ? '/api/user/avatar' : (val.substring(0, 50) + '...');
+                }
+            });
 
-            // Handle client-side session profile updates
-            if (trigger === "update" && session) {
-                if (session.name) token.name = session.name;
-                if (session.image) token.image = getSafeImage(session.image);
-            }
+            // Forcefully clear any potential large image/picture properties that NextAuth might auto-inject
+            const stripLargeImage = (t: any) => {
+                if (t.image?.length > 2000) t.image = '/api/user/avatar';
+                if (t.picture?.length > 2000) t.picture = '/api/user/avatar';
+                return t;
+            };
 
             // Initial sign in
             if (account && user) {
                 token.id = user.id;
                 token.name = user.name;
                 token.email = user.email;
-                token.image = getSafeImage(user.image);
+                token.image = user.image?.startsWith('data:image/') ? '/api/user/avatar' : user.image;
                 token.accessToken = account.access_token;
                 token.provider = account.provider;
-                return token;
+                return stripLargeImage(token);
+            }
+
+            // Handle client-side session profile updates
+            if (trigger === "update" && session) {
+                if (session.name) token.name = session.name;
+                if (session.image) token.image = session.image?.startsWith('data:image/') ? '/api/user/avatar' : session.image;
             }
 
             // Return previous token if user is not provided
@@ -123,9 +133,10 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.name = user.name;
                 token.email = user.email;
-                token.image = getSafeImage(user.image);
+                token.image = user.image?.startsWith('data:image/') ? '/api/user/avatar' : user.image;
             }
-            return token;
+
+            return stripLargeImage(token);
         },
         async session({ session, token }) {
             if (token && session.user) {
