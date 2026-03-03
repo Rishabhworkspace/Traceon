@@ -3,8 +3,50 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/connection';
 import User from '@/lib/db/models/User';
+import Repository from '@/lib/db/models/Repository';
+import AnalysisResult from '@/lib/db/models/AnalysisResult';
 import bcrypt from 'bcryptjs';
 
+// ─── GET: Fetch user profile and stats ───────────────────────────
+export async function GET() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.email) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        await dbConnect();
+        const user = await User.findOne({ email: session.user.email });
+        if (!user) {
+            return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        }
+
+        // Aggregate stats
+        const repos = await Repository.find({ userId: user._id });
+        const reposAnalyzed = repos.length;
+        const totalFilesScanned = repos.reduce((sum, r) => sum + (r.fileCount || 0), 0);
+
+        return NextResponse.json({
+            user: {
+                name: user.name,
+                email: user.email,
+                githubUsername: user.githubUsername,
+                image: user.image?.startsWith('data:image/') ? `/api/user/avatar?t=${Date.now()}` : user.image,
+                createdAt: user.createdAt,
+            },
+            stats: {
+                reposAnalyzed,
+                totalFilesScanned,
+                memberSince: user.createdAt,
+            },
+        });
+    } catch (error) {
+        console.error('Profile GET error:', error);
+        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    }
+}
+
+// ─── POST: Update user profile ───────────────────────────────────
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
@@ -41,7 +83,7 @@ export async function POST(req: Request) {
 
         // Image update (base64 or URL)
         if (image !== undefined) {
-            if (typeof image !== 'string' || image.length > 5 * 1024 * 1024) { // ~5MB text limit 
+            if (typeof image !== 'string' || image.length > 5 * 1024 * 1024) {
                 return NextResponse.json({ message: 'Image too large or invalid' }, { status: 400 });
             }
             user.image = image === '' ? undefined : image;
@@ -65,7 +107,6 @@ export async function POST(req: Request) {
 
         await user.save();
 
-        // Prevent sending a massive base64 payload back to the client unless necessary
         const safeImageReturn = user.image?.startsWith('data:image/')
             ? `/api/user/avatar?t=${Date.now()}`
             : user.image;
@@ -75,12 +116,45 @@ export async function POST(req: Request) {
             user: {
                 name: user.name,
                 githubUsername: user.githubUsername,
-                image: safeImageReturn
-            }
+                image: safeImageReturn,
+            },
         });
-
     } catch (error) {
         console.error('Profile update error:', error);
         return NextResponse.json({ message: 'Internal server error while updating profile' }, { status: 500 });
+    }
+}
+
+// ─── DELETE: Permanently delete user account and all data ────────
+export async function DELETE() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.email) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        await dbConnect();
+        const user = await User.findOne({ email: session.user.email });
+        if (!user) {
+            return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        }
+
+        // 1. Find all repos belonging to this user
+        const repos = await Repository.find({ userId: user._id });
+        const repoIds = repos.map((r) => r._id);
+
+        // 2. Delete all analysis results for those repos
+        await AnalysisResult.deleteMany({ repositoryId: { $in: repoIds } });
+
+        // 3. Delete all repositories
+        await Repository.deleteMany({ userId: user._id });
+
+        // 4. Delete the user
+        await User.deleteOne({ _id: user._id });
+
+        return NextResponse.json({ message: 'Account deleted successfully' });
+    } catch (error) {
+        console.error('Account deletion error:', error);
+        return NextResponse.json({ message: 'Internal server error while deleting account' }, { status: 500 });
     }
 }

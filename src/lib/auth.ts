@@ -105,9 +105,9 @@ export const authOptions: NextAuthOptions = {
             });
 
             // Forcefully clear any potential large image/picture properties that NextAuth might auto-inject
-            const stripLargeImage = (t: any) => {
-                if (t.image?.length > 2000) t.image = '/api/user/avatar';
-                if (t.picture?.length > 2000) t.picture = '/api/user/avatar';
+            const stripLargeImage = (t: Record<string, unknown>) => {
+                if (typeof t.image === 'string' && t.image.length > 2000) t.image = '/api/user/avatar';
+                if (typeof t.picture === 'string' && t.picture.length > 2000) t.picture = '/api/user/avatar';
                 return t;
             };
 
