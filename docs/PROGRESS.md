@@ -14,9 +14,9 @@
 | 1 | Foundation & Project Setup | ✅ Completed | Week 1 | ██████████ 100% |
 | 2 | Authentication System | ✅ Completed | Week 2 | ██████████ 100% |
 | 3 | Repository Ingestion | ✅ Completed | Week 3 | ██████████ 100% |
-| 4 | AST Parser Engine | 🟡 In Progress | Week 4 | ░░░░░░░░░░ 0% |
-| 5 | Dependency Graph Builder | ⬜ Not Started | Week 5 | ░░░░░░░░░░ 0% |
-| 6 | Interactive Visualization | ⬜ Not Started | Week 6 | ░░░░░░░░░░ 0% |
+| 4 | AST Parser Engine | ✅ Completed | Week 4 | ██████████ 100% |
+| 5 | Dependency Graph Builder | ✅ Completed | Week 5 | ██████████ 100% |
+| 6 | Interactive Visualization | ✅ Completed | Week 6 | ██████████ 100% |
 | 7 | Impact Analysis Engine | ⬜ Not Started | Week 7 | ░░░░░░░░░░ 0% |
 | 8 | Dashboard, Polish & Deploy | ⬜ Not Started | Week 8 | ░░░░░░░░░░ 0% |
 
@@ -80,33 +80,33 @@
 - [x] Extract function/class declarations
 - [x] Build file metadata collector
 - [x] Create File model in MongoDB
-- [ ] Set up Worker Threads for CPU-intensive parsing
+- [x] Set up Worker Threads for CPU-intensive parsing
 - [x] Add batch parsing for large repositories
 - [x] Implement parse error handling and recovery
 
 ### Phase 5: Dependency Graph Builder (Week 5)
-- [ ] Resolve import paths to actual files
-- [ ] Build node creation logic (files → graph nodes)
-- [ ] Build edge creation logic (imports → graph edges)
-- [ ] Calculate dependency density metrics
-- [ ] Identify critical modules (high in/out degree)
-- [ ] Create AnalysisResult model in MongoDB
-- [ ] Build `GET /api/graph/:repoId` endpoint
-- [ ] Optimise graph for large repositories
-- [ ] Add circular dependency detection
-- [ ] Create graph data transformation utilities
+- [x] Resolve import paths to actual files
+- [x] Build node creation logic (files → graph nodes)
+- [x] Build edge creation logic (imports → graph edges)
+- [x] Calculate dependency density metrics
+- [x] Identify critical modules (high in/out degree)
+- [x] Create AnalysisResult model in MongoDB
+- [x] Build `GET /api/graph/:repoId` endpoint
+- [x] Optimise graph for large repositories
+- [x] Add circular dependency detection
+- [x] Create graph data transformation utilities
 
 ### Phase 6: Interactive Visualization (Week 6)
-- [ ] Install and configure React Flow
-- [ ] Create custom node components (by type)
-- [ ] Create custom edge components
-- [ ] Build graph canvas with zoom/pan controls
-- [ ] Implement node click → file inspector panel
-- [ ] Implement hover → highlight connections
-- [ ] Add graph layout algorithms (dagre/elk)
-- [ ] Build graph legend component
-- [ ] Add graph search/filter functionality
-- [ ] Implement responsive graph layout
+- [x] Install and configure React Flow
+- [x] Create custom node components (by type)
+- [x] Create custom edge components
+- [x] Build graph canvas with zoom/pan controls
+- [x] Implement node click → file inspector panel
+- [x] Implement hover → highlight connections
+- [x] Add graph layout algorithms (dagre/elk)
+- [x] Build graph legend component
+- [x] Add graph search/filter functionality
+- [x] Implement responsive graph layout
 
 ### Phase 7: Impact Analysis Engine (Week 7)
 - [ ] Implement reverse dependency traversal (BFS)
