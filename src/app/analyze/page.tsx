@@ -18,7 +18,7 @@ const STATUS_MESSAGES: Record<AnalyzingState, string> = {
 
 function AnalyzeContent() {
     const searchParams = useSearchParams();
-    const repoUrl = searchParams.get('url');
+    const repoId = searchParams.get('id');
     const router = useRouter();
 
     const [status, setStatus] = useState<AnalyzingState>('initializing');
@@ -68,52 +68,31 @@ function AnalyzeContent() {
     }, []);
 
     useEffect(() => {
-        if (!repoUrl) {
-            setError('No repository URL provided.');
+        if (!repoId) {
+            setError('No repository ID provided.');
             return;
         }
 
         if (hasStartedRef.current) return;
         hasStartedRef.current = true;
 
-        const startAnalysis = async () => {
-            try {
-                setTerminalLines(prev => [...prev, `$ Init scan target: ${repoUrl}`]);
-                let localSessionId = localStorage.getItem('traceon_guest_session');
-                if (!localSessionId) {
-                    localSessionId = crypto.randomUUID();
-                    localStorage.setItem('traceon_guest_session', localSessionId);
-                }
+        let localSessionId = localStorage.getItem('traceon_guest_session');
+        if (!localSessionId) {
+            localSessionId = crypto.randomUUID();
+            localStorage.setItem('traceon_guest_session', localSessionId);
+        }
 
-                const res = await fetch('/api/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ repoUrl, sessionId: localSessionId }),
-                });
+        setTerminalLines([
+            `$ Tracking analysis session: ${repoId}`,
+            `→ Engine engaged. Awaiting status...`
+        ]);
 
-                const data = await res.json();
+        // Start polling loop directly since initialization happened on the previous page
+        pollStatus(repoId, localSessionId);
 
-                if (!res.ok) {
-                    throw new Error(data.message || 'Failed to start analysis');
-                }
+    }, [repoId, pollStatus]);
 
-                setTerminalLines(prev => [...prev, `→ Analysis job queued ID: ${data.repositoryId}`]);
-
-                // Start polling loop
-                pollStatus(data.repositoryId, localSessionId);
-
-            } catch (err: unknown) {
-                setStatus('failed');
-                const msg = err instanceof Error ? err.message : 'Analysis failed';
-                setError(msg);
-                setTerminalLines(prev => [...prev, `! Error: ${msg}`]);
-            }
-        };
-
-        startAnalysis();
-    }, [repoUrl, pollStatus]);
-
-    if (!repoUrl) {
+    if (!repoId) {
         return (
             <div className="min-h-screen pt-32 pb-16 flex flex-col items-center justify-center text-center">
                 <AlertCircle className="w-12 h-12 text-rose mb-4" />
@@ -147,8 +126,8 @@ function AnalyzeContent() {
                         {STATUS_MESSAGES[status]}
                     </h1>
                     <p className="text-sm font-mono text-text-2 bg-surface-1 px-3 py-1.5 rounded-md border border-stroke inline-flex items-center">
-                        <span className="text-emerald mr-2">Target:</span>
-                        {repoUrl.replace('https://github.com/', '')}
+                        <span className="text-emerald mr-2">Target ID:</span>
+                        {repoId}
                     </p>
                 </div>
 

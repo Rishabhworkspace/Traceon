@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, ChevronRight, Upload, Link2, FileArchive, X } from 'lucide-react';
+import { ArrowRight, ChevronRight, Upload, Link2, FileArchive, X, Loader2 } from 'lucide-react';
 
 const TYPING_LINES = [
     '$ traceon analyze https://github.com/vercel/next.js',
@@ -23,6 +23,8 @@ export function HeroSection() {
     const [currentLine, setCurrentLine] = useState(0);
     const [currentChar, setCurrentChar] = useState(0);
     const [showCursor, setShowCursor] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState('');
     const router = useRouter();
     const terminalRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,17 +57,66 @@ export function HeroSection() {
         return () => clearInterval(interval);
     }, []);
 
-    const handleAnalyze = (e: React.FormEvent) => {
+    const handleAnalyze = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (repoUrl.trim()) {
-            router.push(`/analyze?url=${encodeURIComponent(repoUrl.trim())}`);
+        const urlToAnalyze = repoUrl.trim();
+        if (!urlToAnalyze) return;
+
+        setIsSubmitting(true);
+        setSubmitError('');
+
+        try {
+            let localSessionId = localStorage.getItem('traceon_guest_session');
+            if (!localSessionId) {
+                localSessionId = crypto.randomUUID();
+                localStorage.setItem('traceon_guest_session', localSessionId);
+            }
+
+            const res = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ repoUrl: urlToAnalyze, sessionId: localSessionId }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Error initializing analysis');
+
+            router.push(`/analyze?id=${data.repositoryId}`);
+        } catch (err: any) {
+            setSubmitError(err.message || 'Failed to analyze repository');
+            setIsSubmitting(false);
         }
     };
 
-    const handleUploadAnalyze = () => {
-        if (uploadedFile) {
-            // TODO: Upload file to API and redirect to analysis page
-            router.push('/analyze?source=upload');
+    const handleUploadAnalyze = async () => {
+        if (!uploadedFile) return;
+
+        setIsSubmitting(true);
+        setSubmitError('');
+
+        try {
+            let localSessionId = localStorage.getItem('traceon_guest_session');
+            if (!localSessionId) {
+                localSessionId = crypto.randomUUID();
+                localStorage.setItem('traceon_guest_session', localSessionId);
+            }
+
+            const formData = new FormData();
+            formData.append('file', uploadedFile);
+            formData.append('sessionId', localSessionId);
+
+            const res = await fetch('/api/analyze/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Error uploading file');
+
+            router.push(`/analyze?id=${data.repositoryId}`);
+        } catch (err: any) {
+            setSubmitError(err.message || 'Failed to upload repository');
+            setIsSubmitting(false);
         }
     };
 
@@ -154,8 +205,8 @@ export function HeroSection() {
                                     type="button"
                                     onClick={() => setMode('url')}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${mode === 'url'
-                                            ? 'bg-surface-3 text-text-0 shadow-sm'
-                                            : 'text-text-2 hover:text-text-1'
+                                        ? 'bg-surface-3 text-text-0 shadow-sm'
+                                        : 'text-text-2 hover:text-text-1'
                                         }`}
                                 >
                                     <Link2 className="w-3 h-3" />
@@ -165,8 +216,8 @@ export function HeroSection() {
                                     type="button"
                                     onClick={() => setMode('upload')}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${mode === 'upload'
-                                            ? 'bg-surface-3 text-text-0 shadow-sm'
-                                            : 'text-text-2 hover:text-text-1'
+                                        ? 'bg-surface-3 text-text-0 shadow-sm'
+                                        : 'text-text-2 hover:text-text-1'
                                         }`}
                                 >
                                     <Upload className="w-3 h-3" />
@@ -177,25 +228,29 @@ export function HeroSection() {
                             {/* URL Input */}
                             {mode === 'url' && (
                                 <form onSubmit={handleAnalyze}>
-                                    <div className="flex items-center gap-2 p-1.5 rounded-xl bg-surface-1 border border-stroke max-w-lg">
-                                        <span className="pl-3 text-emerald font-mono text-sm select-none">
-                                            $
-                                        </span>
-                                        <input
-                                            type="url"
-                                            value={repoUrl}
-                                            onChange={(e) => setRepoUrl(e.target.value)}
-                                            placeholder="github.com/user/repo"
-                                            className="flex-1 bg-transparent text-text-0 placeholder-text-3 text-sm outline-none py-2.5 font-mono"
-                                            id="repo-url-input"
-                                        />
-                                        <button
-                                            type="submit"
-                                            className="btn-cta !rounded-lg !text-sm"
-                                        >
-                                            Analyze
-                                            <ArrowRight className="w-3.5 h-3.5" />
-                                        </button>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2 p-1.5 rounded-xl bg-surface-1 border border-stroke max-w-lg">
+                                            <span className="pl-3 text-emerald font-mono text-sm select-none">
+                                                $
+                                            </span>
+                                            <input
+                                                type="url"
+                                                value={repoUrl}
+                                                onChange={(e) => setRepoUrl(e.target.value)}
+                                                placeholder="github.com/user/repo"
+                                                className="flex-1 bg-transparent text-text-0 placeholder-text-3 text-sm outline-none py-2.5 font-mono"
+                                                id="repo-url-input"
+                                                disabled={isSubmitting}
+                                            />
+                                            <button
+                                                type="submit"
+                                                disabled={isSubmitting}
+                                                className="btn-cta !rounded-lg !text-sm flex items-center gap-2 min-w-[100px] justify-center"
+                                            >
+                                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Analyze <ArrowRight className="w-3.5 h-3.5" /></>}
+                                            </button>
+                                        </div>
+                                        {submitError && <span className="text-xs text-rose font-mono pl-3">{submitError}</span>}
                                     </div>
                                 </form>
                             )}
@@ -211,8 +266,8 @@ export function HeroSection() {
                                             onDrop={handleDrop}
                                             onClick={() => fileInputRef.current?.click()}
                                             className={`relative flex flex-col items-center justify-center gap-3 p-8 rounded-xl border border-dashed cursor-pointer transition-all duration-200 ${dragActive
-                                                    ? 'border-emerald bg-emerald/[0.05]'
-                                                    : 'border-stroke hover:border-text-3 bg-surface-1'
+                                                ? 'border-emerald bg-emerald/[0.05]'
+                                                : 'border-stroke hover:border-text-3 bg-surface-1'
                                                 }`}
                                         >
                                             <input
@@ -241,34 +296,38 @@ export function HeroSection() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-1 border border-stroke">
-                                            <div className="w-9 h-9 rounded-lg bg-emerald/10 border border-emerald/20 flex items-center justify-center shrink-0">
-                                                <FileArchive className="w-4 h-4 text-emerald" />
+                                        <div className="flex flex-col w-full gap-2">
+                                            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-1 border border-stroke">
+                                                <div className="w-9 h-9 rounded-lg bg-emerald/10 border border-emerald/20 flex items-center justify-center shrink-0">
+                                                    <FileArchive className="w-4 h-4 text-emerald" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm text-text-0 font-mono truncate">
+                                                        {uploadedFile.name}
+                                                    </p>
+                                                    <p className="text-xs text-text-3 font-mono">
+                                                        {formatFileSize(uploadedFile.size)}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={clearFile}
+                                                    className="p-1.5 rounded-md text-text-3 hover:text-text-0 hover:bg-surface-3 transition-colors"
+                                                    aria-label="Remove file"
+                                                    disabled={isSubmitting}
+                                                >
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleUploadAnalyze}
+                                                    disabled={isSubmitting}
+                                                    className="btn-cta !rounded-lg !text-sm flex items-center gap-2 min-w-[100px] justify-center"
+                                                >
+                                                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Analyze <ArrowRight className="w-3.5 h-3.5" /></>}
+                                                </button>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-text-0 font-mono truncate">
-                                                    {uploadedFile.name}
-                                                </p>
-                                                <p className="text-xs text-text-3 font-mono">
-                                                    {formatFileSize(uploadedFile.size)}
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={clearFile}
-                                                className="p-1.5 rounded-md text-text-3 hover:text-text-0 hover:bg-surface-3 transition-colors"
-                                                aria-label="Remove file"
-                                            >
-                                                <X className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={handleUploadAnalyze}
-                                                className="btn-cta !rounded-lg !text-sm"
-                                            >
-                                                Analyze
-                                                <ArrowRight className="w-3.5 h-3.5" />
-                                            </button>
+                                            {submitError && <span className="text-xs text-rose font-mono pl-3">{submitError}</span>}
                                         </div>
                                     )}
                                 </div>
@@ -304,10 +363,10 @@ export function HeroSection() {
                                     <div
                                         key={i}
                                         className={`${line.startsWith('$')
-                                                ? 'text-text-0'
-                                                : line.startsWith('✓')
-                                                    ? 'text-emerald'
-                                                    : 'text-text-2'
+                                            ? 'text-text-0'
+                                            : line.startsWith('✓')
+                                                ? 'text-emerald'
+                                                : 'text-text-2'
                                             }`}
                                     >
                                         {line}
@@ -316,10 +375,10 @@ export function HeroSection() {
                                 {currentLine < TYPING_LINES.length && (
                                     <div
                                         className={`${TYPING_LINES[currentLine].startsWith('$')
-                                                ? 'text-text-0'
-                                                : TYPING_LINES[currentLine].startsWith('✓')
-                                                    ? 'text-emerald'
-                                                    : 'text-text-2'
+                                            ? 'text-text-0'
+                                            : TYPING_LINES[currentLine].startsWith('✓')
+                                                ? 'text-emerald'
+                                                : 'text-text-2'
                                             }`}
                                     >
                                         {currentTypingText}

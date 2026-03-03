@@ -3,6 +3,8 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Terminal, History, Settings } from 'lucide-react';
 import Link from 'next/link';
+import dbConnect from '@/lib/db/connection';
+import Repository, { IRepository } from '@/lib/db/models/Repository';
 
 export default async function DashboardPage() {
     const session = await getServerSession(authOptions);
@@ -10,6 +12,9 @@ export default async function DashboardPage() {
     if (!session) {
         redirect('/login');
     }
+
+    await dbConnect();
+    const repos = await Repository.find({ userId: session.user.id }).sort({ createdAt: -1 }).lean() as unknown as IRepository[];
 
     return (
         <div className="min-h-screen pt-32 pb-12 px-5 max-w-6xl mx-auto">
@@ -24,15 +29,42 @@ export default async function DashboardPage() {
                             <History className="w-5 h-5 text-emerald" />
                             <h2 className="text-xl font-mono text-text-0">Analysis History</h2>
                         </div>
-                        <div className="p-8 border border-dashed border-stroke rounded-xl flex flex-col items-center justify-center text-center bg-surface-1/50">
-                            <Terminal className="w-8 h-8 text-text-3 mb-3" />
-                            <p className="text-text-2 font-mono text-sm">
-                                You haven't analyzed any repositories yet.
-                            </p>
-                            <Link href="/" className="btn-cta mt-4 !py-2 !text-sm">
-                                Start new analysis
-                            </Link>
-                        </div>
+                        {repos.length === 0 ? (
+                            <div className="p-8 border border-dashed border-stroke rounded-xl flex flex-col items-center justify-center text-center bg-surface-1/50">
+                                <Terminal className="w-8 h-8 text-text-3 mb-3" />
+                                <p className="text-text-2 font-mono text-sm">
+                                    You haven't analyzed any repositories yet.
+                                </p>
+                                <Link href="/" className="btn-cta mt-4 !py-2 !text-sm">
+                                    Start new analysis
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {repos.map((repo) => (
+                                    <div key={repo._id.toString()} className="flex items-center justify-between p-4 rounded-xl border border-stroke bg-surface-1 hover:bg-surface-2 transition-colors">
+                                        <div>
+                                            <h3 className="text-sm font-medium text-text-0 font-mono mb-1">
+                                                {repo.owner}/{repo.name}
+                                            </h3>
+                                            <div className="flex items-center gap-3 text-xs font-mono text-text-3">
+                                                <span>Status: <span className={repo.status === 'complete' ? 'text-emerald' : repo.status === 'failed' ? 'text-red-400' : 'text-amber'}>{repo.status}</span></span>
+                                                <span>•</span>
+                                                <span>{repo.fileCount} files</span>
+                                                <span>•</span>
+                                                <span>{new Date(repo.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                        <Link
+                                            href={`/analyze?id=${repo._id.toString()}`}
+                                            className="px-3 py-1.5 rounded-md border border-stroke bg-surface-0 hover:bg-surface-3 transition-colors text-xs font-mono text-text-1"
+                                        >
+                                            View
+                                        </Link>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
