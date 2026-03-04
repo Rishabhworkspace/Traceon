@@ -63,43 +63,83 @@ function reverseBFS(
 }
 
 /**
+ * Classify a file path to determine if it's a low-importance file type.
+ * Config files, type declarations, and test files should not easily score critical.
+ */
+function isLowImportanceFile(filePath: string): boolean {
+    const name = filePath.toLowerCase();
+    return (
+        name.includes('.config.') ||
+        name.includes('.setup.') ||
+        name.includes('.test.') ||
+        name.includes('.spec.') ||
+        name.includes('__test') ||
+        name.includes('__mock') ||
+        name.endsWith('.d.ts') ||
+        name.endsWith('.json') ||
+        name.includes('/types/') ||
+        name.includes('/types.ts') ||
+        name.includes('.css') ||
+        name.includes('.scss')
+    );
+}
+
+/**
  * Calculate an impact score for a given node.
- * Score is based on: number of dependents, their LOC, and whether critical modules are affected.
+ * 
+ * The score uses a logarithmic scale for the affected-files ratio to prevent
+ * small projects from inflating scores. It also accounts for:
+ * - Direct vs transitive dependents (direct weigh more)
+ * - Whether the target is a low-importance file (dampened score)
+ * - Critical module overlap (small bonus, capped)
+ * 
+ * Score range: 0–100
  */
 function calculateImpactScore(
     targetNode: IGraphNode,
-    affectedNodes: string[],
-    nodesMap: Map<string, IGraphNode>,
-    criticalModules: string[]
+    directCount: number,
+    transitiveCount: number,
+    totalNodes: number,
+    criticalModules: string[],
+    affectedNodes: string[]
 ): number {
-    if (affectedNodes.length === 0) return 0;
+    if (directCount === 0 && transitiveCount === 0) return 0;
 
-    const totalNodes = nodesMap.size;
-    const affectedRatio = affectedNodes.length / totalNodes;
+    const totalAffected = directCount + transitiveCount;
 
-    // Weight by LOC of affected files
-    let totalAffectedLOC = 0;
-    let totalProjectLOC = 0;
-    for (const [, node] of nodesMap) {
-        totalProjectLOC += node.loc;
-        if (affectedNodes.includes(node.id)) {
-            totalAffectedLOC += node.loc;
-        }
+    // --- Component 1: Direct dependents ratio (0–35 pts) ---
+    // Use logarithmic scaling so a file with 2 direct deps in a 100-file project
+    // doesn't score the same as one with 20 direct deps.
+    const directRatio = directCount / totalNodes;
+    const directScore = Math.min(35, Math.log1p(directRatio * 100) / Math.log1p(100) * 35);
+
+    // --- Component 2: Transitive spread (0–30 pts) ---
+    // Transitive dependents matter less per-file than direct; use sqrt scaling
+    const transitiveRatio = transitiveCount / totalNodes;
+    const transitiveScore = Math.min(30, Math.sqrt(transitiveRatio) * 30);
+
+    // --- Component 3: Overall reach fraction (0–25 pts) ---
+    // What fraction of the entire project is affected? Uses log scale.
+    const reachRatio = totalAffected / totalNodes;
+    const reachScore = Math.min(25, Math.log1p(reachRatio * 50) / Math.log1p(50) * 25);
+
+    // --- Component 4: Critical module overlap (0–10 pts) ---
+    const criticalAffected = affectedNodes.filter(id => criticalModules.includes(id)).length;
+    const criticalScore = Math.min(10, criticalAffected * 2.5);
+
+    let rawScore = directScore + transitiveScore + reachScore + criticalScore;
+
+    // --- Dampening for low-importance file types ---
+    if (isLowImportanceFile(targetNode.path)) {
+        rawScore *= 0.5;
     }
-    const locRatio = totalProjectLOC > 0 ? totalAffectedLOC / totalProjectLOC : 0;
 
-    // Bonus if critical modules are affected
-    const criticalAffected = affectedNodes.filter((id) => criticalModules.includes(id)).length;
-    const criticalBonus = criticalAffected * 0.15;
-
-    // Combined score (0–100)
-    const rawScore = (affectedRatio * 40) + (locRatio * 40) + (criticalBonus * 20);
-    return Math.min(100, Math.round(rawScore * 100) / 100);
+    return Math.min(100, Math.round(rawScore * 10) / 10);
 }
 
 function getRiskLevel(score: number): 'low' | 'moderate' | 'critical' {
-    if (score >= 50) return 'critical';
-    if (score >= 20) return 'moderate';
+    if (score >= 60) return 'critical';
+    if (score >= 30) return 'moderate';
     return 'low';
 }
 
@@ -120,7 +160,14 @@ export function analyzeImpact(
 
     const { direct, transitive, allAffected } = reverseBFS(targetNodeId, nodes, edges);
 
-    const impactScore = calculateImpactScore(targetNode, allAffected, nodesMap, criticalModules);
+    const impactScore = calculateImpactScore(
+        targetNode,
+        direct.length,
+        transitive.length,
+        nodes.length,
+        criticalModules,
+        allAffected
+    );
     const riskLevel = getRiskLevel(impactScore);
 
     return {

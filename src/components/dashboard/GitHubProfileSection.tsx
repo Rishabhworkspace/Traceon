@@ -46,24 +46,34 @@ export default function GitHubProfileSection() {
             setLoading(true);
             setError(null);
             const res = await fetch('/api/github');
-            if (!res.ok) {
-                throw new Error('Failed to fetch GitHub data');
-            }
             const json = await res.json();
+
+            // Handle unauthorized (actual auth failure)
+            if (res.status === 401) {
+                setData({ message: 'Unauthorized', repos: [], starred: [] });
+                return;
+            }
+
             // The API returns a message 'No GitHub connection available' if the user isn't logged in with GitHub
             if (json.message && (json.message === 'No GitHub connection available' || json.message === 'Unauthorized')) {
                 setData({ message: json.message, repos: [], starred: [] });
             } else {
-                setData(json);
+                setData({
+                    repos: json.repos || [],
+                    starred: json.starred || [],
+                    message: json.message,
+                });
             }
         } catch (err: unknown) {
             console.error('Error fetching GitHub profile:', err);
             const msg = err instanceof Error ? err.message : 'Failed to fetch GitHub profile';
             setError(msg);
+            setData({ repos: [], starred: [] });
         } finally {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         fetchGitHubData();

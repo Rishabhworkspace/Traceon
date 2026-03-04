@@ -22,6 +22,53 @@ interface GitHubApiRepo {
     };
 }
 
+function formatRepo(repo: GitHubApiRepo) {
+    return {
+        id: repo.id,
+        name: repo.name,
+        full_name: repo.full_name,
+        description: repo.description,
+        url: repo.html_url,
+        language: repo.language,
+        stargazers_count: repo.stargazers_count,
+        updated_at: repo.updated_at,
+        visibility: repo.visibility,
+        owner: {
+            login: repo.owner.login,
+            avatar_url: repo.owner.avatar_url
+        }
+    };
+}
+
+async function fetchGitHubApi(url: string, headers: HeadersInit): Promise<GitHubApiRepo[]> {
+    const response = await fetch(url, {
+        headers,
+        next: { revalidate: 60 * 5 }
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error(`GitHub API error [${response.status}] for ${url}:`, errorText);
+
+        // Rate limit hit — return empty instead of throwing
+        if (response.status === 403 || response.status === 429) {
+            console.warn('GitHub API rate limit hit, returning empty results');
+            return [];
+        }
+
+        // Not found — likely invalid username
+        if (response.status === 404) {
+            console.warn('GitHub user not found, returning empty results');
+            return [];
+        }
+
+        return [];
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+}
+
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -30,37 +77,30 @@ export async function GET() {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        let repos = [];
-        let starred = [];
+        let repos: GitHubApiRepo[] = [];
+        let starred: GitHubApiRepo[] = [];
 
         // If we have a GitHub provider with an access token, use the authenticated API
         if (session.user.provider === 'github' && session.user.accessToken) {
             const headers: HeadersInit = {
                 'Authorization': `token ${session.user.accessToken}`,
                 'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Traceon-App',
             };
 
-            // Fetch user's own repositories
-            const reposResponse = await fetch(`${GITHUB_API_URL}/user/repos?sort=updated&per_page=100&affiliation=owner,collaborator`, {
-                headers,
-                next: { revalidate: 60 * 5 } // Cache for 5 minutes
-            });
-
-            // Fetch user's starred repositories
-            const starredResponse = await fetch(`${GITHUB_API_URL}/user/starred?sort=created&per_page=100`, {
-                headers,
-                next: { revalidate: 60 * 5 }
-            });
-
-            if (!reposResponse.ok || !starredResponse.ok) {
-                console.error('GitHub API error', await reposResponse.text(), await starredResponse.text());
-                throw new Error('Failed to fetch data from GitHub API');
-            }
-
-            repos = await reposResponse.json();
-            starred = await starredResponse.json();
+            // Fetch repos and starred in parallel
+            [repos, starred] = await Promise.all([
+                fetchGitHubApi(
+                    `${GITHUB_API_URL}/user/repos?sort=updated&per_page=100&affiliation=owner,collaborator`,
+                    headers
+                ),
+                fetchGitHubApi(
+                    `${GITHUB_API_URL}/user/starred?sort=created&per_page=100`,
+                    headers
+                ),
+            ]);
         } else {
-            // Fallback to unauthenticated public API if they linked a GitHub username to their account
+            // Fallback to unauthenticated public API if they linked a GitHub username
             await dbConnect();
             const dbUser = await User.findOne({ email: session.user.email });
 
@@ -69,74 +109,40 @@ export async function GET() {
                     message: 'No GitHub connection available',
                     repos: [],
                     starred: []
-                }, { status: 200 }); // Return empty arrays, UI will show connect form
+                }, { status: 200 });
             }
 
             const username = dbUser.githubUsername;
             const headers: HeadersInit = {
                 'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Traceon-App',
             };
 
-            // Unauthenticated requests for public repos
-            const reposResponse = await fetch(`${GITHUB_API_URL}/users/${username}/repos?sort=updated&per_page=100`, {
-                headers,
-                next: { revalidate: 60 * 5 }
-            });
-
-            const starredResponse = await fetch(`${GITHUB_API_URL}/users/${username}/starred?sort=created&per_page=100`, {
-                headers,
-                next: { revalidate: 60 * 5 }
-            });
-
-            if (!reposResponse.ok || !starredResponse.ok) {
-                console.error('GitHub API unauthenticated error', await reposResponse.text(), await starredResponse.text());
-                throw new Error('Failed to fetch public data from GitHub API');
-            }
-
-            repos = await reposResponse.json();
-            starred = await starredResponse.json();
+            // Fetch repos and starred in parallel
+            [repos, starred] = await Promise.all([
+                fetchGitHubApi(
+                    `${GITHUB_API_URL}/users/${username}/repos?sort=updated&per_page=100`,
+                    headers
+                ),
+                fetchGitHubApi(
+                    `${GITHUB_API_URL}/users/${username}/starred?sort=created&per_page=100`,
+                    headers
+                ),
+            ]);
         }
 
-        // Map abstracting away unnecessary fields
-        const formattedRepos = repos.map((repo: GitHubApiRepo) => ({
-            id: repo.id,
-            name: repo.name,
-            full_name: repo.full_name,
-            description: repo.description,
-            url: repo.html_url,
-            language: repo.language,
-            stargazers_count: repo.stargazers_count,
-            updated_at: repo.updated_at,
-            visibility: repo.visibility,
-            owner: {
-                login: repo.owner.login,
-                avatar_url: repo.owner.avatar_url
-            }
-        }));
-
-        const formattedStarred = starred.map((repo: GitHubApiRepo) => ({
-            id: repo.id,
-            name: repo.name,
-            full_name: repo.full_name,
-            description: repo.description,
-            url: repo.html_url,
-            language: repo.language,
-            stargazers_count: repo.stargazers_count,
-            updated_at: repo.updated_at,
-            visibility: repo.visibility,
-            owner: {
-                login: repo.owner.login,
-                avatar_url: repo.owner.avatar_url
-            }
-        }));
-
         return NextResponse.json({
-            repos: formattedRepos,
-            starred: formattedStarred
+            repos: repos.map(formatRepo),
+            starred: starred.map(formatRepo)
         });
 
     } catch (error) {
         console.error('GitHub Profile API Error:', error);
-        return NextResponse.json({ message: 'Internal server error while fetching GitHub profile' }, { status: 500 });
+        // Return empty data instead of 500 so the UI doesn't break
+        return NextResponse.json({
+            message: 'Failed to fetch GitHub data',
+            repos: [],
+            starred: []
+        }, { status: 200 });
     }
 }
