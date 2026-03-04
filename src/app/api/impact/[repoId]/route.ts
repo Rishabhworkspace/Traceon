@@ -15,12 +15,12 @@ export async function GET(
 
         await dbConnect();
 
-        const repo = await Repository.findById(resolvedParams.repoId);
+        const repo = await Repository.findById(resolvedParams.repoId).lean();
         if (!repo) {
             return NextResponse.json({ message: 'Repository not found' }, { status: 404 });
         }
 
-        const analysis = await AnalysisResult.findOne({ repositoryId: resolvedParams.repoId });
+        const analysis = await AnalysisResult.findOne({ repositoryId: resolvedParams.repoId }).lean();
         if (!analysis) {
             return NextResponse.json({ message: 'Analysis data not found' }, { status: 404 });
         }

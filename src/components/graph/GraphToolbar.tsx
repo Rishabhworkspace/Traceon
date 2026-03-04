@@ -91,7 +91,7 @@ export default function GraphToolbar({
                         className="bg-transparent text-xs text-gray-300 outline-none w-[100px] sm:w-[140px] placeholder:text-gray-600"
                     />
                     {searchText && (
-                        <button onClick={() => setSearchText('')} className="flex-shrink-0">
+                        <button onClick={() => setSearchText('')} className="flex-shrink-0" aria-label="Clear search">
                             <X size={12} className="text-gray-500 hover:text-gray-300 transition-colors" />
                         </button>
                     )}
@@ -105,6 +105,8 @@ export default function GraphToolbar({
                             key={t}
                             onClick={() => onFilterType(activeFilter === t ? null : t)}
                             className="px-2 py-0.5 rounded text-[10px] font-medium transition-all hover:brightness-110"
+                            aria-label={`Filter by ${t} type`}
+                            aria-pressed={activeFilter === t}
                             style={{
                                 background: activeFilter === t ? `${TYPE_COLORS[t]}20` : 'transparent',
                                 color: activeFilter === t ? TYPE_COLORS[t] : '#6b7280',
@@ -121,6 +123,8 @@ export default function GraphToolbar({
                     <button
                         onClick={() => setFilterOpen(!filterOpen)}
                         className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all"
+                        aria-label="Open filter menu"
+                        aria-expanded={filterOpen}
                         style={{
                             background: activeFilter ? `${TYPE_COLORS[activeFilter]}15` : 'rgba(255,255,255,0.03)',
                             color: activeFilter ? TYPE_COLORS[activeFilter] : '#6b7280',

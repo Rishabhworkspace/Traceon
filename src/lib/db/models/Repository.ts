@@ -65,6 +65,7 @@ const RepositorySchema = new Schema<IRepository>(
 
 RepositorySchema.index({ userId: 1 });
 RepositorySchema.index({ sessionId: 1 });
+RepositorySchema.index({ userId: 1, status: 1 });
 
 const Repository: Model<IRepository> =
     mongoose.models.Repository || mongoose.model<IRepository>('Repository', RepositorySchema);
