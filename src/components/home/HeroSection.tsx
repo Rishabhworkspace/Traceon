@@ -187,7 +187,7 @@ export function HeroSection() {
                             <ChevronRight className="w-3 h-3 text-text-3" />
                         </div>
 
-                        <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-display font-extrabold tracking-[-0.04em] leading-[1.05] mb-5 animate-fade-up animate-delay-1">
+                        <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-display font-extrabold leading-[1.05] mb-5 animate-fade-up animate-delay-1">
                             Understand any
                             <br />
                             codebase in
@@ -201,7 +201,7 @@ export function HeroSection() {
                         </p>
 
                         {/* Mode Switcher */}
-                        <div className="animate-fade-up animate-delay-3">
+                        <div className="animate-fade-up animate-delay-4">
                             <div className="flex items-center gap-1 p-0.5 rounded-lg bg-surface-1 border border-stroke mb-3 w-fit">
                                 <button
                                     type="button"
@@ -336,13 +336,13 @@ export function HeroSection() {
                             )}
                         </div>
 
-                        <p className="mt-4 text-xs text-text-3 font-mono animate-fade-up animate-delay-4">
+                        <p className="mt-4 text-xs text-text-3 font-mono animate-fade-up animate-delay-5">
                             JS / TS repos · Free tier · No account needed
                         </p>
                     </div>
 
                     {/* Right — Terminal mockup */}
-                    <div className="animate-fade-up animate-delay-3">
+                    <div className="animate-fade-up animate-delay-4">
                         <div className="card overflow-hidden">
                             {/* Terminal title bar */}
                             <div className="flex items-center gap-2 px-4 py-2.5 border-b border-stroke bg-surface-1">

@@ -58,10 +58,10 @@ export default function FileInspector({ node, isCritical, onClose }: FileInspect
                 </div>
                 <button
                     onClick={onClose}
-                    className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                    className="absolute top-4 right-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors border border-white/20 z-[60]"
                     title="Close Details"
                 >
-                    <X size={16} className="text-gray-300 hover:text-white transition-colors" />
+                    <X size={16} className="text-white" />
                 </button>
             </div>
 

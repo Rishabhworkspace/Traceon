@@ -120,7 +120,7 @@ function AnalyzeContent() {
                         )}
                     </div>
 
-                    <h1 className="text-4xl font-display font-bold tracking-tight mb-3 text-text-0">
+                    <h1 className="text-4xl font-display font-bold mb-3 text-text-0">
                         {STATUS_MESSAGES[status]}
                     </h1>
                     <p className="text-sm font-mono text-text-2 bg-surface-1 px-3 py-1.5 rounded-md border border-stroke inline-flex items-center">

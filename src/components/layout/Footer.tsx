@@ -4,14 +4,14 @@ import { Github, Twitter } from 'lucide-react';
 
 const footerLinks = {
     Product: [
-        { label: 'Features', href: '#features' },
+        { label: 'Features', href: '/#features' },
         { label: 'Analyze', href: '/analyze' },
-        { label: 'Changelog', href: '/changelog' },
+        { label: 'Changelog', href: 'https://github.com/Rishabhworkspace/Traceon/releases' },
     ],
     Resources: [
         { label: 'Documentation', href: '/docs' },
-        { label: 'API Reference', href: '/docs/api' },
-        { label: 'Privacy', href: '/privacy' },
+        { label: 'API Reference', href: '/docs' },
+        { label: 'Privacy', href: '/docs' },
     ],
 };
 
@@ -40,7 +40,7 @@ export default function Footer() {
                         </p>
                         <div className="flex items-center gap-2">
                             <a
-                                href="https://github.com"
+                                href="https://github.com/Rishabhworkspace/Traceon"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="p-1.5 rounded-md text-text-3 hover:text-text-0 hover:bg-surface-2 transition-colors"
@@ -49,7 +49,7 @@ export default function Footer() {
                                 <Github className="w-4 h-4" />
                             </a>
                             <a
-                                href="https://twitter.com"
+                                href="https://twitter.com/rishabh"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="p-1.5 rounded-md text-text-3 hover:text-text-0 hover:bg-surface-2 transition-colors"

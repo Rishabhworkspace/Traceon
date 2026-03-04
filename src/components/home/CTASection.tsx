@@ -26,10 +26,8 @@ export function CTASection() {
                     <div className="relative z-10">
                         <span className="mono-label block mb-4">{'// get started'}</span>
 
-                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold tracking-[-0.03em] mb-4 max-w-xl mx-auto leading-[1.1]">
-                            Ready to map
-                            <br />
-                            your codebase?
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-4 max-w-xl mx-auto leading-[1.1]">
+                            Ready to master your architecture?
                         </h2>
 
                         <p className="text-text-2 text-base max-w-md mx-auto mb-8 leading-relaxed">
@@ -52,7 +50,7 @@ export function CTASection() {
                                 <ArrowRight className="w-4 h-4" />
                             </button>
                             <a
-                                href="https://github.com"
+                                href="https://github.com/Rishabhworkspace/Traceon"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="btn-ghost !text-[15px] !py-3 !px-6"

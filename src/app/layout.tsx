@@ -6,18 +6,16 @@ import Footer from "@/components/layout/Footer";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 
-const dmSans = DM_Sans({
+const dmSansBody = DM_Sans({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
 });
 
-const syne = Syne({
+const syneDisplay = Syne({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["700", "800"],
 });
 
 const firaCode = Fira_Code({
@@ -76,7 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${dmSans.variable} ${syne.variable} ${firaCode.variable} antialiased`}
+        className={`${dmSansBody.variable} ${syneDisplay.variable} ${firaCode.variable} antialiased`}
       >
         <NextAuthProvider>
           <Navbar />

@@ -78,7 +78,7 @@ export function FeaturesSection() {
                 {/* Section header */}
                 <div className="mb-14">
                     <span className="mono-label block mb-3">{'// capabilities'}</span>
-                    <h2 className="text-3xl sm:text-4xl font-display font-bold tracking-[-0.03em] mb-3">
+                    <h2 className="text-3xl sm:text-4xl font-display font-bold mb-3">
                         Everything you need to
                         <br />
                         <span className="text-text-2">navigate unfamiliar code.</span>
