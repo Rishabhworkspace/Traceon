@@ -1,10 +1,10 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Activity, GitFork, Boxes, Timer } from 'lucide-react';
 
-const stats = [
+const INITIAL_STATS = [
     {
         icon: Activity,
         value: '12,400+',
@@ -34,6 +34,34 @@ const stats = [
 export function StatsSection() {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: '-60px' });
+    const [stats, setStats] = useState(INITIAL_STATS);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await fetch('/api/stats');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                const formatNum = (num: number) => {
+                    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M+';
+                    if (num >= 1000) return (num / 1000).toFixed(1) + 'K+';
+                    return num.toString();
+                };
+
+                setStats((prev) => [
+                    { ...prev[0], value: formatNum(data.reposAnalyzed) },
+                    { ...prev[1], value: formatNum(data.filesParsed) },
+                    { ...prev[2], value: formatNum(data.edgesMapped) },
+                    { ...prev[3], value: data.avgAnalysis || '<30s' },
+                ]);
+            } catch (error) {
+                console.error('Failed to fetch live stats:', error);
+            }
+        };
+
+        fetchStats();
+    }, []);
 
     return (
         <section className="py-16" ref={ref}>

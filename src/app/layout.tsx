@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { DM_Sans, Syne, Fira_Code } from "next/font/google";
+import { Inter, Space_Grotesk, Fira_Code } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 
-const dmSansBody = DM_Sans({
+const interBody = Inter({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
 });
 
-const syneDisplay = Syne({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
@@ -74,7 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${dmSansBody.variable} ${syneDisplay.variable} ${firaCode.variable} antialiased`}
+        className={`${interBody.variable} ${spaceGrotesk.variable} ${firaCode.variable} antialiased`}
       >
         <NextAuthProvider>
           <Navbar />

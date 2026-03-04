@@ -22,8 +22,8 @@
   --color-stroke: #27272a;
   --color-stroke-subtle: #1c1c1f;
 
-  --font-body: 'DM Sans', system-ui, sans-serif;
-  --font-display: 'Syne', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-mono: 'Fira Code', 'JetBrains Mono', monospace;
 }
 
