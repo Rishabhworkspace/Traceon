@@ -64,7 +64,7 @@ export default function Navbar() {
                                     className="px-2 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors flex items-center gap-2"
                                 >
                                     {session.user?.image ? (
-                                        <img src={session.user.image} alt="Profile" className="w-5 h-5 rounded-full object-cover border border-stroke" />
+                                        <Image src={session.user.image} alt="Profile" width={20} height={20} className="w-5 h-5 rounded-full object-cover border border-stroke" unoptimized />
                                     ) : (
                                         <div className="w-5 h-5 rounded-full bg-emerald/10 border border-emerald/20 text-emerald flex items-center justify-center text-[10px] font-bold font-mono">
                                             {session.user?.name?.charAt(0)?.toUpperCase()}

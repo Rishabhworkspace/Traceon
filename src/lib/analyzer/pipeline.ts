@@ -57,7 +57,6 @@ export async function runAnalysisPipeline(repoId: string, repoPath: string, clea
             return new Promise<WorkerFileResult[]>(async (resolve, reject) => {
                 try {
                     // Dynamically eval to completely bypass Turbopack's static analysis crashing on worker_threads
-                    // eslint-disable-next-line @typescript-eslint/no-var-requires
                     const { Worker } = eval('require("node:worker_threads")');
 
                     const workerPath = path.resolve(process.cwd(), 'workers/parse-worker.js');

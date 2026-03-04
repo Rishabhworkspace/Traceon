@@ -63,7 +63,7 @@ function AnalyzeContent() {
             setError(msg);
             setTerminalLines(prev => [...prev, `! Connection error: ${msg}`]);
         }
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         if (!repoId) {

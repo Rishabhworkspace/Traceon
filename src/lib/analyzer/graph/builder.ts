@@ -163,10 +163,6 @@ export function calculateGraph(files: IFile[]) {
             const cycleStartIndex = dfsPathArr.indexOf(nodeId);
             if (cycleStartIndex !== -1) {
                 const cycle = dfsPathArr.slice(cycleStartIndex).concat(nodeId);
-                // Simple deduplication strategy: sort cycle arbitrarily as string and check if recorded
-                const normCycle = [...cycle].sort().join(',');
-                // Quick global check for unique cycles (hacky but works for small amounts)
-                // In production, finding *all* specific elementary circuits might require Tarjan/Johnson algo
                 circularDependencies.push(cycle);
             }
             return;

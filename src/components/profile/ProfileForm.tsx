@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { Session } from 'next-auth';
 import { Camera, Save, Lock, User, Github, BarChart3, Trash2, AlertTriangle, Link as LinkIcon, FileCode, Calendar } from 'lucide-react';
@@ -215,7 +216,7 @@ export default function ProfileForm({ session }: { session: Session }) {
                     <div className="flex flex-col items-center gap-4">
                         <div className="relative w-32 h-32 rounded-full border-2 border-stroke bg-surface-1 overflow-hidden group">
                             {imagePreview ? (
-                                <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                                <Image src={imagePreview} alt="Profile" width={128} height={128} className="w-full h-full object-cover" unoptimized />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-surface-2 text-text-3 text-4xl font-display">
                                     {name.charAt(0).toUpperCase()}

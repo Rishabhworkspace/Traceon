@@ -66,31 +66,43 @@ export default function ImpactPanel({
     }, [repoId]);
 
     useEffect(() => {
-        if (isOpen && fullReport.length === 0) {
-            fetchFullReport();
-        }
+        if (!isOpen || fullReport.length > 0) return;
+        let cancelled = false;
+
+        (async () => {
+            const result = await fetchFullReport();
+            if (cancelled) return;
+            // fetchFullReport already calls setState internally
+            void result;
+        })();
+
+        return () => { cancelled = true; };
     }, [isOpen, fullReport.length, fetchFullReport]);
 
-    // Fetch single node impact when selected
-    useEffect(() => {
-        if (!selectedNodeId || !isOpen) {
-            setNodeImpact(null);
-            return;
-        }
-
+    // Fetch single node impact
+    const fetchNodeImpact = useCallback(async (nodeId: string) => {
         setLoading(true);
         setActiveTab('single');
+        try {
+            const res = await fetch(`/api/impact/${repoId}?nodeId=${nodeId}`);
+            const data = await res.json();
+            if (data.success) {
+                setNodeImpact(data.data);
+            }
+        } catch {
+            console.error('Failed to fetch node impact');
+        } finally {
+            setLoading(false);
+        }
+    }, [repoId]);
 
-        fetch(`/api/impact/${repoId}?nodeId=${selectedNodeId}`)
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.success) {
-                    setNodeImpact(data.data);
-                }
-            })
-            .catch(() => console.error('Failed to fetch node impact'))
-            .finally(() => setLoading(false));
-    }, [selectedNodeId, repoId, isOpen]);
+    useEffect(() => {
+        if (!selectedNodeId || !isOpen) {
+            const id = requestAnimationFrame(() => setNodeImpact(null));
+            return () => cancelAnimationFrame(id);
+        }
+        fetchNodeImpact(selectedNodeId);
+    }, [selectedNodeId, isOpen, fetchNodeImpact]);
 
     if (!isOpen) {
         return (
