@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/banner.png" alt="Traceon — Dependency Graph Visualizer" width="100%" />
+<img src="public/logo.png" alt="Traceon" width="120" />
 
 # Traceon
 
@@ -26,7 +26,7 @@ Traceon is an interactive codebase analysis tool that clones any GitHub reposito
 Paste a GitHub URL. Get a visual map of every file, every import, every connection. Know exactly which module is a critical dependency before it breaks your sprint.
 
 <div align="center">
-  <img src="public/graph-demo.png" alt="Traceon Graph Visualization" width="90%" />
+  <img src="public/graph-demo.png" alt="Traceon — Interactive dependency graph with impact analysis" width="90%" />
   <br />
   <sub>Interactive dependency graph with impact analysis panel</sub>
 </div>
