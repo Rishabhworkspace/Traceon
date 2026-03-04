@@ -6,23 +6,24 @@
 
 **See what your codebase really looks like.**
 
-[![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![React Flow](https://img.shields.io/badge/React_Flow-FF0072?style=for-the-badge&logo=react&logoColor=white)](https://reactflow.dev/)
+[![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![React Flow](https://img.shields.io/badge/React_Flow-FF0072?style=flat-square&logo=react&logoColor=white)](https://reactflow.dev/)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+
+[Features](#features) · [Getting Started](#getting-started) · [Architecture](#architecture) · [API Reference](#api-reference) · [Roadmap](#roadmap)
 
 [Live Demo](https://traceon.vercel.app) · [Report Bug](https://github.com/Rishabhworkspace/Traceon/issues) · [Request Feature](https://github.com/Rishabhworkspace/Traceon/issues)
 
 </div>
 
----
+## About
 
-## 🧠 What is Traceon?
+Traceon is an interactive codebase analysis tool that clones any GitHub repository, parses every source file into an Abstract Syntax Tree, builds a full dependency graph, and renders it as a real-time force-directed visualization — all inside your browser.
 
-**Traceon** is an interactive codebase analysis tool that clones any GitHub repository, parses every source file into an Abstract Syntax Tree, builds a full dependency graph, and renders it as a real-time force-directed visualization — all inside your browser.
-
-Paste a GitHub URL. Get a visual map of every file, every import, every connection. Know exactly which module is a ticking time bomb before it blows up your sprint.
+Paste a GitHub URL. Get a visual map of every file, every import, every connection. Know exactly which module is a critical dependency before it breaks your sprint.
 
 <div align="center">
   <img src="public/graph-demo.png" alt="Traceon Graph Visualization" width="90%" />
@@ -30,58 +31,65 @@ Paste a GitHub URL. Get a visual map of every file, every import, every connecti
   <sub>Interactive dependency graph with impact analysis panel</sub>
 </div>
 
----
+## Features
 
-## ✨ Features
+- **AST-powered analysis** — Uses the TypeScript Compiler API for proper AST parsing, not regex or string matching.
+- **Interactive dependency graph** — Force-directed graph with zoom, pan, search, and filter via React Flow. Nodes are color-coded by type (entry, component, utility, module, config).
+- **Impact analysis engine** — Select any file to see its impact score (0–100), risk level, direct/transitive dependents, and visual blast radius via reverse BFS traversal.
+- **Circular dependency detection** — Automatically flags `A → B → C → A` loops that cause build issues and bundle bloat.
+- **Dashboard & metrics** — Track analyzed repositories, file counts, dependency density, critical modules, and file type distribution.
+- **Multiple ingestion methods** — Paste a GitHub URL or upload a ZIP archive.
+- **Authentication** — Email/password, GitHub OAuth, Google OAuth, JWT sessions, and guest mode.
 
-### 🔬 AST-Powered Analysis
-Not regex pattern matching. Not string searching. Traceon uses the **TypeScript Compiler API** to parse your source files into proper Abstract Syntax Trees, extracting imports, exports, functions, and classes with surgical precision.
+## Getting Started
 
-### 📊 Interactive Dependency Graph
-Every file becomes a node. Every import becomes an edge. The result is a **force-directed graph** you can zoom, pan, search, and filter — powered by React Flow with custom node types color-coded by role:
+### Prerequisites
 
-| Color | Node Type | Meaning |
-|-------|-----------|---------|
-| 🟡 Amber | Entry | Application entry points |
-| 🟣 Purple | Component | UI components |
-| 🔵 Cyan | Utility | Helper/utility modules |
-| 🟢 Green | Module | Core business logic |
-| 🟠 Orange | Config | Configuration files |
-| ⚫ Gray | Other | Everything else |
+- **Node.js** ≥ 18
+- **npm** ≥ 9
+- **MongoDB Atlas** cluster (free tier works)
+- **Git** installed locally
 
-### 💥 Impact Analysis Engine
-Select any file node and instantly see:
-- **Impact Score** (0–100) — how much damage changing this file could cause
-- **Risk Level** — Critical / Moderate / Low
-- **Direct dependents** — files that import this module
-- **Transitive dependents** — the full blast radius via reverse BFS traversal
-- **Visual highlight** — affected nodes glow on the graph
+### Setup
 
-### 🔄 Circular Dependency Detection
-Traceon automatically detects and flags circular dependency chains — those sneaky `A → B → C → A` loops that cause mysterious bugs and bundle bloat.
+```bash
+git clone https://github.com/Rishabhworkspace/Traceon.git
+cd Traceon
+npm install
+cp .env.example .env.local
+```
 
-### 📈 Dashboard & Metrics
-Authenticated users get a personal dashboard tracking:
-- Total repositories analyzed
-- Cumulative files, dependencies, and lines of code
-- Dependency density across projects
-- Critical module watchlist
-- File type distribution breakdown
+Edit `.env.local` with your credentials:
 
-### 🔐 Authentication
-- Email/password signup with bcrypt hashing
-- GitHub OAuth
-- Google OAuth
-- JWT session management
-- Guest mode for quick one-off analysis
+```env
+# Database
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/traceon
 
-### 📦 Multiple Ingestion Methods
-- **Paste a GitHub URL** — Traceon clones it server-side via `simple-git`
-- **Upload a ZIP** — drop your project archive directly
+# NextAuth
+NEXTAUTH_SECRET=your_random_secret_minimum_32_chars
+NEXTAUTH_URL=http://localhost:3000
 
----
+# GitHub OAuth
+GITHUB_ID=your_github_oauth_app_id
+GITHUB_SECRET=your_github_oauth_app_secret
 
-## 🏗️ Architecture
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
+
+> [!TIP]
+> Generate a secure secret with `openssl rand -base64 32`
+
+### Run
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) — you're live.
+
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -99,245 +107,68 @@ Authenticated users get a personal dashboard tracking:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Analysis Pipeline Flow
+### Analysis pipeline
 
-```
-GitHub URL ──→ Clone Repo ──→ Scan Files ──→ Filter Source Files
-                                                    │
-                                                    ▼
-                                        Parse with Worker Threads
-                                        (TypeScript Compiler API)
-                                                    │
-                                                    ▼
-                                         Extract Imports/Exports
-                                                    │
-                                                    ▼
-                                       Build Dependency Graph
-                                       (Nodes + Edges + Metrics)
-                                                    │
-                                                    ▼
-                                        Store in MongoDB Atlas
-                                                    │
-                                                    ▼
-                                      Render with React Flow ✨
-```
+1. **Clone** — `simple-git` clones the repo to a temp directory.
+2. **Scan** — Walk the file tree, filter source files, ignore `node_modules`.
+3. **Parse** — Spawn worker threads for parallel AST parsing via the TypeScript Compiler API. Extract imports, exports, functions, classes, and LOC.
+4. **Build graph** — Resolve import paths into nodes + edges. Calculate dependency density, in/out degree, and critical modules. Detect circular dependencies via DFS.
+5. **Visualize** — Render with React Flow using Dagre layout, custom color-coded nodes, animated edges, and interactive inspection panels.
 
----
+### Impact scoring
 
-## 🛠️ Tech Stack
+The impact engine uses reverse BFS traversal to calculate how much damage a change to any file could cause:
+
+| Risk Level | Score | Meaning |
+|-----------|-------|---------|
+| Critical | 60–100 | Changing this file breaks many things |
+| Moderate | 30–59 | Proceed with caution |
+| Low | 0–29 | Safe to modify |
+
+## Tech Stack
 
 | Layer | Technology | Why |
 |-------|-----------|-----|
-| **Framework** | Next.js 16 (App Router) | Server Components, API routes, streaming |
-| **Language** | TypeScript 5 | Type safety across the full stack |
-| **Styling** | Tailwind CSS v4 | CSS-first config, custom design tokens |
-| **Graph** | React Flow (@xyflow/react) | Best-in-class graph rendering |
-| **Layout** | Dagre | Hierarchical graph layout algorithm |
-| **Database** | MongoDB Atlas + Mongoose | Flexible document model for graph data |
-| **Auth** | NextAuth.js | GitHub, Google, Credentials providers |
-| **Parsing** | TypeScript Compiler API | Production-grade AST parsing |
-| **Cloning** | simple-git | Lightweight Git operations |
-| **Animation** | Framer Motion | Physics-based UI animations |
-| **Icons** | Lucide React | Clean, consistent icon set |
+| Framework | Next.js 16 (App Router) | Server Components, API routes, streaming |
+| Language | TypeScript 5 | Type safety across the full stack |
+| Styling | Tailwind CSS v4 | CSS-first config, custom design tokens |
+| Graph | React Flow (@xyflow/react) | Best-in-class graph rendering |
+| Layout | Dagre | Hierarchical graph layout algorithm |
+| Database | MongoDB Atlas + Mongoose | Flexible document model for graph data |
+| Auth | NextAuth.js | GitHub, Google, Credentials providers |
+| Parsing | TypeScript Compiler API | Production-grade AST parsing |
+| Cloning | simple-git | Lightweight Git operations |
+| Animation | Framer Motion | Physics-based UI animations |
+| Icons | Lucide React | Clean, consistent icon set |
 
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Node.js** ≥ 18
-- **npm** ≥ 9
-- **MongoDB Atlas** cluster (free tier works)
-- **Git** installed locally
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Rishabhworkspace/Traceon.git
-cd Traceon
-```
-
-### 2. Install dependencies
-
-```bash
-npm install
-```
-
-### 3. Configure environment variables
-
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` with your credentials:
-
-```env
-# ─── Database ───
-MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/traceon
-
-# ─── NextAuth ───
-NEXTAUTH_SECRET=your_random_secret_minimum_32_chars
-NEXTAUTH_URL=http://localhost:3000
-
-# ─── GitHub OAuth ───
-GITHUB_ID=your_github_oauth_app_id
-GITHUB_SECRET=your_github_oauth_app_secret
-
-# ─── Google OAuth ───
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-```
-
-> **Tip**: Generate a secure secret with `openssl rand -base64 32`
-
-### 4. Run the development server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) — you're live.
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
-├── app/                          # Next.js App Router pages
-│   ├── page.tsx                  # Landing page
-│   ├── analyze/page.tsx          # Analysis progress UI
-│   ├── dashboard/page.tsx        # User dashboard (protected)
-│   ├── graph/[repoId]/page.tsx   # Interactive graph viewer
-│   ├── login/page.tsx            # Login page
-│   ├── signup/page.tsx           # Signup page
-│   ├── profile/page.tsx          # User profile settings
-│   └── api/                      # API routes
-│       ├── analyze/              # POST — start analysis
-│       ├── graph/[repoId]/       # GET — fetch graph data
-│       ├── impact/[repoId]/      # GET — impact analysis
-│       ├── dashboard/            # GET — dashboard metrics
-│       └── auth/                 # NextAuth handlers
+├── app/                        # Next.js App Router pages & API routes
+│   ├── page.tsx                # Landing page
+│   ├── analyze/                # Analysis progress UI
+│   ├── dashboard/              # User dashboard (protected)
+│   ├── graph/[repoId]/         # Interactive graph viewer
+│   └── api/                    # REST endpoints
 │
 ├── components/
-│   ├── graph/                    # Graph visualization components
-│   │   ├── CustomNode.tsx        # Color-coded file nodes
-│   │   ├── CustomEdge.tsx        # Animated dependency edges
-│   │   ├── FileInspector.tsx     # File detail side panel
-│   │   ├── GraphToolbar.tsx      # Search, filter, metrics bar
-│   │   ├── GraphLegend.tsx       # Node type legend
-│   │   └── ImpactPanel.tsx       # Impact analysis panel
-│   ├── home/                     # Landing page sections
-│   ├── dashboard/                # Dashboard components
-│   ├── layout/                   # Navbar, Footer, ErrorBoundary
-│   └── profile/                  # Profile form
+│   ├── graph/                  # Graph visualization (CustomNode, ImpactPanel, etc.)
+│   ├── home/                   # Landing page sections
+│   ├── dashboard/              # Dashboard widgets
+│   └── layout/                 # Navbar, Footer, ErrorBoundary
 │
 ├── lib/
-│   ├── analyzer/
-│   │   ├── clone.ts              # Git clone service
-│   │   ├── scanner.ts            # File system walker
-│   │   ├── parser.ts             # TypeScript AST parser
-│   │   ├── pipeline.ts           # Orchestrator (with Worker Threads)
-│   │   └── graph/
-│   │       ├── builder.ts        # Graph construction + metrics
-│   │       └── impact.ts         # Impact score calculation
-│   ├── auth.ts                   # NextAuth configuration
-│   └── db/
-│       ├── connection.ts         # MongoDB connection (pooled)
-│       └── models/               # Mongoose schemas
-│           ├── User.ts
-│           ├── Repository.ts
-│           ├── File.ts
-│           └── AnalysisResult.ts
+│   ├── analyzer/               # Clone, scan, parse, pipeline orchestration
+│   │   └── graph/              # Graph builder + impact scoring
+│   ├── auth.ts                 # NextAuth configuration
+│   └── db/                     # MongoDB connection + Mongoose models
 │
 └── workers/
-    └── parse-worker.js           # Worker thread for CPU-intensive parsing
+    └── parse-worker.js         # Worker thread for CPU-intensive parsing
 ```
 
----
-
-## 🧪 How the Analysis Works
-
-### Step 1: Clone
-```typescript
-// simple-git clones the repo to a temp directory
-const localPath = await cloneRepository(repoUrl);
-```
-
-### Step 2: Scan
-```typescript
-// Walk the directory, filter source files, ignore node_modules
-const files = await scanDirectory(localPath);
-// → Returns: [{ path, name, extension }, ...]
-```
-
-### Step 3: Parse (Worker Threads)
-```typescript
-// Spawn worker threads for parallel AST parsing
-// Each worker uses TypeScript Compiler API to extract:
-// - imports, exports, functions, classes, LOC
-```
-
-### Step 4: Build Graph
-```typescript
-// Resolve import paths → create nodes + edges
-// Calculate: dependency density, in/out degree, critical modules
-// Detect circular dependencies via DFS
-const { nodes, edges, metrics } = calculateGraph(files);
-```
-
-### Step 5: Visualize
-The graph data is rendered via React Flow with:
-- **Dagre layout** for hierarchical positioning
-- **Custom nodes** with type-based color coding
-- **Animated edges** showing data flow direction
-- **Interactive panels** for file inspection and impact analysis
-
----
-
-## 📊 Impact Analysis
-
-The impact engine uses **reverse BFS traversal** to calculate how much damage a change to any single file could cause:
-
-```
-Impact Score = f(directDependents, transitiveDependents, totalFiles)
-```
-
-| Risk Level | Score Range | Color | Meaning |
-|-----------|------------|-------|---------|
-| **Critical** | 60–100 | 🔴 Red | Changing this file breaks many things |
-| **Moderate** | 30–59 | 🟡 Amber | Proceed with caution |
-| **Low** | 0–29 | 🟢 Green | Safe to modify |
-
----
-
-## 🗄️ Database Models
-
-| Model | Purpose | Key Fields |
-|-------|---------|------------|
-| **User** | Auth & profile | `email`, `passwordHash`, `githubUsername`, `image` |
-| **Repository** | Analyzed repos | `repoUrl`, `owner`, `name`, `status`, `fileCount` |
-| **File** | Parsed file data | `path`, `extension`, `imports`, `exports`, `loc` |
-| **AnalysisResult** | Graph output | `nodes[]`, `edges[]`, `metrics{}` |
-
-All models use Mongoose with `timestamps: true`, proper indexing, and `.lean()` for read-only queries.
-
----
-
-## 🔒 Security
-
-- Passwords hashed with **bcryptjs** (12 salt rounds)
-- `passwordHash` field uses `select: false` — never returned in queries
-- JWT-based sessions via NextAuth
-- Environment secrets excluded via `.gitignore`
-- MongoDB connection pooling with `maxPoolSize: 10`
-- API route validation with regex for GitHub URLs
-- Auth checks on protected API endpoints
-
----
-
-## 📋 API Reference
+## API Reference
 
 | Method | Endpoint | Auth | Description |
 |--------|---------|------|-------------|
@@ -350,35 +181,20 @@ All models use Mongoose with `timestamps: true`, proper indexing, and `.lean()` 
 | `POST` | `/api/auth/signup` | Public | User registration |
 | `GET` | `/api/user/profile` | Required | Get user profile |
 | `PUT` | `/api/user/profile` | Required | Update user profile |
-| `GET` | `/api/user/avatar` | Required | Get user avatar |
-| `GET` | `/api/github` | Required | Fetch GitHub repos |
 
----
-
-## 🚢 Deployment
+## Deployment
 
 ### Vercel (Recommended)
 
 1. Push to GitHub
 2. Import project in [Vercel Dashboard](https://vercel.com/new)
-3. Add environment variables in Vercel project settings
+3. Add environment variables in project settings
 4. Deploy — Vercel auto-detects Next.js
 
-### Environment Variables for Production
+> [!IMPORTANT]
+> Whitelist `0.0.0.0/0` in MongoDB Atlas Network Access for Vercel's dynamic IPs.
 
-| Variable | Description |
-|----------|-------------|
-| `MONGODB_URI` | MongoDB Atlas connection string (whitelist `0.0.0.0/0` for Vercel) |
-| `NEXTAUTH_SECRET` | Random 32+ character string |
-| `NEXTAUTH_URL` | Your production URL (e.g., `https://traceon.vercel.app`) |
-| `GITHUB_ID` | GitHub OAuth App ID |
-| `GITHUB_SECRET` | GitHub OAuth App Secret |
-| `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
-
----
-
-## 🗺️ Roadmap
+## Roadmap
 
 - [x] Repository cloning & file scanning
 - [x] TypeScript AST parsing with Worker Threads
@@ -396,27 +212,9 @@ All models use Mongoose with `timestamps: true`, proper indexing, and `.lean()` 
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
-
 <div align="center">
 
-**Built with 🧪 by [Rishabh](https://github.com/Rishabhworkspace)**
+**Built by [Rishabh](https://github.com/Rishabhworkspace)**
 
 *Traceon — Because understanding your code shouldn't require reading all of it.*
 
