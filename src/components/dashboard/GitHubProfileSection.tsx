@@ -271,30 +271,30 @@ export default function GitHubProfileSection() {
 
 function RepoCard({ repo, isAnalyzing, onAnalyze }: { repo: GitHubRepo, isAnalyzing: boolean, onAnalyze: () => void }) {
     return (
-        <div className="flex flex-col p-4 rounded-xl border border-stroke bg-surface-1 hover:bg-surface-2 transition-colors h-full">
-            <div className="flex justify-between items-start mb-2">
-                <Link href={repo.url} target="_blank" rel="noopener noreferrer" className="text-base font-bold text-text-0 font-mono hover:text-emerald transition-colors truncate pr-4">
-                    {repo.full_name}
+        <div className="flex flex-col p-4 rounded-xl border border-stroke bg-surface-1 hover:bg-surface-2 transition-colors h-full overflow-hidden">
+            <div className="flex justify-between items-start gap-2 mb-2">
+                <Link href={repo.url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-text-0 font-mono hover:text-emerald transition-colors truncate min-w-0">
+                    {repo.name}
                 </Link>
-                <span className="text-xs font-mono px-2 py-0.5 rounded-full border border-stroke bg-surface-0 text-text-2 my-auto shrink-0">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full border border-stroke bg-surface-0 text-text-2 shrink-0">
                     {repo.visibility}
                 </span>
             </div>
 
-            <p className="text-sm text-text-2 line-clamp-2 mb-4 flex-grow">
+            <p className="text-xs text-text-2 line-clamp-2 mb-4 flex-grow">
                 {repo.description || 'No description provided.'}
             </p>
 
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-stroke/50">
-                <div className="flex items-center gap-4 text-xs font-mono text-text-3">
+            <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-stroke/50">
+                <div className="flex items-center gap-3 text-[10px] font-mono text-text-3 min-w-0 overflow-hidden">
                     {repo.language && (
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-full bg-emerald shrink-0" />
-                            <span>{repo.language}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-emerald shrink-0" />
+                            <span className="truncate">{repo.language}</span>
                         </div>
                     )}
-                    <div className="flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1 shrink-0">
+                        <Star className="w-3 h-3" />
                         <span>{repo.stargazers_count}</span>
                     </div>
                 </div>
@@ -302,7 +302,7 @@ function RepoCard({ repo, isAnalyzing, onAnalyze }: { repo: GitHubRepo, isAnalyz
                 <button
                     onClick={onAnalyze}
                     disabled={isAnalyzing}
-                    className="inline-flex items-center gap-2 bg-emerald/10 hover:bg-emerald/20 text-emerald px-3 py-1.5 rounded-md text-xs font-mono font-medium border border-emerald/20 transition-all disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 bg-emerald/10 hover:bg-emerald/20 text-emerald px-2.5 py-1 rounded-md text-[11px] font-mono font-medium border border-emerald/20 transition-all disabled:opacity-50 shrink-0"
                 >
                     {isAnalyzing ? (
                         <>
