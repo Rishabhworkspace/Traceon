@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/connection';
@@ -6,6 +7,8 @@ import Repository from '@/lib/db/models/Repository';
 import { cloneRepository } from '@/lib/analyzer/clone';
 import { runAnalysisPipeline } from '@/lib/analyzer/pipeline';
 import { v4 as uuidv4 } from 'uuid';
+
+export const maxDuration = 60; // Allow up to 60s for Vercel Pro, 10s for free tier
 
 export async function POST(req: Request) {
     try {
@@ -47,9 +50,12 @@ export async function POST(req: Request) {
             sessionId,
         });
 
-        // Start background processing immediately but don't await this promise fully
-        startAnalysis(repository._id.toString(), repoUrl).catch(err => {
-            console.error('Background analysis failed entirely:', err);
+        const repoId = repository._id.toString();
+
+        // Use next/server after() to run background work after response is sent
+        // This keeps the serverless function alive on Vercel until the work completes
+        after(async () => {
+            await startAnalysis(repoId, repoUrl);
         });
 
         return NextResponse.json({
@@ -65,11 +71,11 @@ export async function POST(req: Request) {
     }
 }
 
-// Fire and forget function to handle cloning and scanning
 async function startAnalysis(repoId: string, url: string) {
     let cleanupFunction: (() => Promise<void>) | null = null;
     try {
         // 1. Mark as cloning
+        await dbConnect();
         await Repository.findByIdAndUpdate(repoId, { status: 'cloning' });
 
         // 2. Clone the repository
@@ -77,15 +83,20 @@ async function startAnalysis(repoId: string, url: string) {
         cleanupFunction = cloneResult.cleanup;
         const { repoPath } = cloneResult;
 
-        // Pass to standard pipeline
+        // 3. Run the full pipeline
         await runAnalysisPipeline(repoId, repoPath, cleanupFunction);
     } catch (err: unknown) {
-        console.error('Analysis clone failed:', err);
-        const msg = err instanceof Error ? err.message : 'Unknown clone error';
-        await Repository.findByIdAndUpdate(repoId, {
-            status: 'failed',
-            errorMessage: msg
-        });
+        console.error('Analysis failed:', err);
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        try {
+            await dbConnect();
+            await Repository.findByIdAndUpdate(repoId, {
+                status: 'failed',
+                errorMessage: msg
+            });
+        } catch (dbErr) {
+            console.error('Failed to update repository status:', dbErr);
+        }
         if (cleanupFunction) {
             await cleanupFunction();
         }

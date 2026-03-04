@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/connection';
@@ -9,6 +10,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import AdmZip from 'adm-zip';
+
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
     try {
@@ -37,6 +40,7 @@ export async function POST(req: Request) {
         const extractPath = path.join(os.tmpdir(), `traceon-repo-${uniqueId}`);
 
         // Write buffer to temp zip file
+        await fs.mkdir(extractPath, { recursive: true });
         await fs.writeFile(tempZipPath, buffer);
 
         // Extract using adm-zip
@@ -74,9 +78,21 @@ export async function POST(req: Request) {
             }
         };
 
-        // Start background processing
-        runAnalysisPipeline(repository._id.toString(), extractPath, cleanupFunction).catch(err => {
-            console.error('Background analysis failed for ZIP payload:', err);
+        // Use after() to run the pipeline after the response is sent
+        after(async () => {
+            try {
+                await dbConnect();
+                await runAnalysisPipeline(repository._id.toString(), extractPath, cleanupFunction);
+            } catch (err) {
+                console.error('Background analysis failed for ZIP payload:', err);
+                try {
+                    await Repository.findByIdAndUpdate(repository._id, {
+                        status: 'failed',
+                        errorMessage: err instanceof Error ? err.message : 'Unknown error'
+                    });
+                } catch { }
+                await cleanupFunction();
+            }
         });
 
         return NextResponse.json({

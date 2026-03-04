@@ -2,6 +2,7 @@ import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs/promises';
+import AdmZip from 'adm-zip';
 
 export interface CloneResult {
     repoPath: string;
@@ -9,11 +10,13 @@ export interface CloneResult {
 }
 
 /**
- * Downloads a GitHub repository as a tarball via the GitHub API and extracts it.
- * This avoids the need for `git` to be installed on the host (e.g. Vercel serverless).
+ * Downloads a GitHub repository as a ZIP via codeload.github.com and extracts it.
+ * Uses the direct download URL (no API, no redirects, no rate limits for public repos).
+ * Extracts with adm-zip (pure JS, no native dependencies).
  */
 export async function cloneRepository(repoUrl: string): Promise<CloneResult> {
     const tempDir = path.join(os.tmpdir(), `traceon-${uuidv4()}`);
+    const tempZip = `${tempDir}.zip`;
 
     try {
         await fs.mkdir(tempDir, { recursive: true });
@@ -25,26 +28,44 @@ export async function cloneRepository(repoUrl: string): Promise<CloneResult> {
         }
         const [, owner, repo] = match;
 
-        // Try GitHub API tarball first (works without git binary)
-        const tarballUrl = `https://api.github.com/repos/${owner}/${repo}/tarball`;
+        // Direct download URL — no API calls, no redirects, no rate limits
+        const zipUrl = `https://codeload.github.com/${owner}/${repo}/zip/HEAD`;
 
-        const response = await fetch(tarballUrl, {
-            headers: {
-                'Accept': 'application/vnd.github+json',
-                'User-Agent': 'Traceon-Analyzer',
-            },
-            redirect: 'follow',
+        console.log(`[Traceon] Downloading: ${zipUrl}`);
+
+        const response = await fetch(zipUrl, {
+            headers: { 'User-Agent': 'Traceon-Analyzer' },
         });
 
         if (!response.ok) {
-            throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`);
+            const errorText = await response.text().catch(() => '');
+            throw new Error(
+                `Download failed (${response.status}): ${response.statusText}. ` +
+                `Check that https://github.com/${owner}/${repo} exists and is public. ${errorText}`
+            );
         }
 
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Extract the tarball
-        await extractTarball(buffer, tempDir);
+        // Write ZIP to temp file, extract with adm-zip, then delete the ZIP
+        await fs.writeFile(tempZip, buffer);
+        const zip = new AdmZip(tempZip);
+        zip.extractAllTo(tempDir, true);
+        await fs.unlink(tempZip).catch(() => { });
+
+        // GitHub ZIPs contain a single root folder: {repo}-{branch}/
+        // Find it and use it as the repo path, or use tempDir if flat
+        const entries = await fs.readdir(tempDir, { withFileTypes: true });
+        const dirs = entries.filter(e => e.isDirectory());
+
+        let repoPath = tempDir;
+        if (dirs.length === 1 && entries.filter(e => e.isFile()).length === 0) {
+            // Single root directory (standard GitHub ZIP layout)
+            repoPath = path.join(tempDir, dirs[0].name);
+        }
+
+        console.log(`[Traceon] Extracted to: ${repoPath}`);
 
         const cleanup = async () => {
             try {
@@ -54,48 +75,14 @@ export async function cloneRepository(repoUrl: string): Promise<CloneResult> {
             }
         };
 
-        return {
-            repoPath: tempDir,
-            cleanup,
-        };
+        return { repoPath, cleanup };
     } catch (error) {
-        // If download fails, try to clean up the directory
-        try {
-            await fs.rm(tempDir, { recursive: true, force: true });
-        } catch { }
+        // Cleanup on failure
+        try { await fs.rm(tempDir, { recursive: true, force: true }); } catch { }
+        try { await fs.unlink(tempZip); } catch { }
 
-        throw new Error(`Failed to clone repository: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(
+            `Failed to clone repository: ${error instanceof Error ? error.message : String(error)}`
+        );
     }
-}
-
-/**
- * Extract a .tar.gz buffer into a target directory.
- * GitHub tarballs have a single root directory (e.g. owner-repo-sha/),
- * so we strip that prefix to place files directly in targetDir.
- */
-async function extractTarball(buffer: Buffer, targetDir: string): Promise<void> {
-    const { Readable } = await import('stream');
-    const zlib = await import('zlib');
-
-    // Dynamically import tar — install it as a dependency
-    let tar: typeof import('tar');
-    try {
-        tar = await import('tar');
-    } catch {
-        throw new Error('tar package is required. Run: npm install tar');
-    }
-
-    return new Promise((resolve, reject) => {
-        const stream = Readable.from(buffer);
-        stream
-            .pipe(zlib.createGunzip())
-            .pipe(
-                tar.extract({
-                    cwd: targetDir,
-                    strip: 1, // Strip the root directory (owner-repo-sha/)
-                })
-            )
-            .on('finish', resolve)
-            .on('error', reject);
-    });
 }
