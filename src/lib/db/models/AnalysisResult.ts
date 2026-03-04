@@ -76,7 +76,7 @@ const MetricsSchema = new Schema<IMetrics>(
         dependencyDensity: { type: Number, default: 0 },
         criticalModules: [{ type: String }],
         circularDependencies: [[{ type: String }]],
-        fileTypeDistribution: { type: Map, of: Number },
+        fileTypeDistribution: { type: Object, default: {} },
     },
     { _id: false }
 );

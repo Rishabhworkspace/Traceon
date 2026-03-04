@@ -27,7 +27,10 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "Traceon — Codebase Intelligence Platform",
+  title: {
+    default: "Traceon — Codebase Intelligence Platform",
+    template: "%s | Traceon",
+  },
   description:
     "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict the impact of your changes.",
   keywords: [
@@ -36,6 +39,8 @@ export const metadata: Metadata = {
     "architecture visualization",
     "impact analysis",
     "developer tools",
+    "code intelligence",
+    "static analysis",
   ],
   icons: {
     icon: [
@@ -49,6 +54,16 @@ export const metadata: Metadata = {
     description:
       "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict impact.",
     type: "website",
+    siteName: "Traceon",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Traceon — Codebase Intelligence Platform",
+    description: "Visualize architecture, trace dependencies, and predict impact.",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
