@@ -112,6 +112,7 @@ export default function GraphPage() {
 
     // Fetch graph data
     useEffect(() => {
+        window.scrollTo(0, 0); // Ensure page starts at the top
         if (!repoId) return;
 
         async function fetchGraph() {

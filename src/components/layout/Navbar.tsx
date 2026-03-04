@@ -21,7 +21,15 @@ export default function Navbar() {
             <div className="mx-auto max-w-6xl px-5">
                 <div className="flex h-14 items-center justify-between">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2 group"
+                        onClick={(e) => {
+                            if (window.location.pathname === '/') {
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                        }}
+                    >
                         <Image
                             src="/logo.png"
                             alt="Traceon Logo"

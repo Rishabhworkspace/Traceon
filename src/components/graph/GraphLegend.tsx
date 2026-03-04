@@ -14,7 +14,7 @@ const LEGEND_ITEMS = [
 export default function GraphLegend() {
     return (
         <div
-            className="absolute bottom-5 left-5 z-30 rounded-xl p-3 space-y-1.5"
+            className="absolute bottom-5 left-16 z-30 rounded-xl p-3 space-y-1.5"
             style={{
                 background: 'rgba(13,13,13,0.9)',
                 border: '1px solid rgba(255,255,255,0.06)',
