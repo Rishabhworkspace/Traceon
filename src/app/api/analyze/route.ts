@@ -84,7 +84,7 @@ async function startAnalysis(repoId: string, url: string) {
         const { repoPath } = cloneResult;
 
         // 3. Run the full pipeline
-        await runAnalysisPipeline(repoId, repoPath, cleanupFunction);
+        await runAnalysisPipeline(repoId, repoPath, url, cleanupFunction);
     } catch (err: unknown) {
         console.error('Analysis failed:', err);
         const msg = err instanceof Error ? err.message : 'Unknown error';

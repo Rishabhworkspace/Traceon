@@ -82,7 +82,7 @@ export async function POST(req: Request) {
         after(async () => {
             try {
                 await dbConnect();
-                await runAnalysisPipeline(repository._id.toString(), extractPath, cleanupFunction);
+                await runAnalysisPipeline(repository._id.toString(), extractPath, 'local-upload', cleanupFunction);
             } catch (err) {
                 console.error('Background analysis failed for ZIP payload:', err);
                 try {

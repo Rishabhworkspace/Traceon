@@ -24,6 +24,7 @@ import GraphLegend from '@/components/graph/GraphLegend';
 import GraphToolbar from '@/components/graph/GraphToolbar';
 import ImpactPanel from '@/components/graph/ImpactPanel';
 import AIChatPanel from '@/components/graph/AIChatPanel';
+import TimelineSlider from '@/components/graph/TimelineSlider';
 
 interface APIGraphNode {
     id: string;
@@ -51,6 +52,14 @@ interface APIMetrics {
     criticalModules: string[];
     circularDependencies: string[][];
     fileTypeDistribution: Record<string, number>;
+}
+
+interface APIHistorySnapshot {
+    commitHash: string;
+    message: string;
+    date: string;
+    nodes: APIGraphNode[];
+    edges: APIGraphEdge[];
 }
 
 const nodeTypes = { custom: CustomNode };
@@ -104,6 +113,9 @@ export default function GraphPage() {
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
     const [rawNodes, setRawNodes] = useState<APIGraphNode[]>([]);
+    const [history, setHistory] = useState<APIHistorySnapshot[]>([]);
+    const [activeHistoryIndex, setActiveHistoryIndex] = useState<number | null>(null);
+
     const [metrics, setMetrics] = useState<APIMetrics | null>(null);
     const [selectedNode, setSelectedNode] = useState<APIGraphNode | null>(null);
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
@@ -127,10 +139,78 @@ export default function GraphPage() {
                 setRawNodes(data.data.nodes);
                 setMetrics(data.data.metrics);
 
-                const criticalSet = new Set(data.data.metrics.criticalModules);
+                // Support History Commits
+                const allSnapshots = [
+                    { commitHash: 'HEAD', message: 'Current Repository State', date: new Date().toISOString(), nodes: data.data.nodes, edges: data.data.edges },
+                    ...(data.data.history || [])
+                ];
 
-                // Build React Flow nodes
-                const rfNodes: Node[] = data.data.nodes.map((n: APIGraphNode) => ({
+                setHistory(allSnapshots);
+                setRawNodes(allSnapshots[0].nodes);
+                setActiveHistoryIndex(0); // HEAD
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : 'Unknown error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchGraph();
+    }, [repoId]);
+
+    // Graph recalculation effect when history changes
+    useEffect(() => {
+        if (!history || history.length === 0 || activeHistoryIndex === null) return;
+
+        const currentSnapshot = history[activeHistoryIndex];
+        const prevSnapshot = history[activeHistoryIndex + 1]; // Older commit
+
+        const targetNodes = currentSnapshot.nodes;
+        const targetEdges = currentSnapshot.edges;
+
+        const rfNodes: Node[] = [];
+        const rfEdges: Edge[] = [];
+
+        const criticalSet = new Set(metrics?.criticalModules || []);
+
+        if (!prevSnapshot) {
+            // No diffing possible, just render standard graph
+            targetNodes.forEach((n: APIGraphNode) => rfNodes.push({
+                id: n.id,
+                type: 'custom',
+                position: { x: 0, y: 0 },
+                data: {
+                    label: n.label,
+                    nodeType: n.type,
+                    loc: n.loc,
+                    inDegree: n.inDegree,
+                    outDegree: n.outDegree,
+                    isCritical: criticalSet.has(n.id),
+                    isHighlighted: false,
+                    isHeatmap: false,
+                    filePath: n.path,
+                    diffStatus: 'unchanged'
+                },
+            }));
+
+            targetEdges.forEach((e: APIGraphEdge, i: number) => rfEdges.push({
+                id: `e-${i}`,
+                source: e.source,
+                target: e.target,
+                type: 'custom',
+                data: { isHighlighted: false, diffStatus: 'unchanged' },
+                animated: false,
+            }));
+        } else {
+            // Diff against older commit
+            const baseEdgeSet = new Set(prevSnapshot.edges.map((e: APIGraphEdge) => `${e.source}->${e.target}`));
+            const prevNodesMap = new Map(prevSnapshot.nodes.map((n: APIGraphNode) => [n.id, n]));
+
+            let idCounter = 0;
+            const targetNodeIds = new Set(targetNodes.map((n: APIGraphNode) => n.id));
+
+            targetNodes.forEach((n: APIGraphNode) => {
+                rfNodes.push({
                     id: n.id,
                     type: 'custom',
                     position: { x: 0, y: 0 },
@@ -144,33 +224,71 @@ export default function GraphPage() {
                         isHighlighted: false,
                         isHeatmap: false,
                         filePath: n.path,
+                        diffStatus: prevNodesMap.has(n.id) ? 'unchanged' : 'added'
                     },
-                }));
+                });
+            });
 
-                // Build React Flow edges
-                const rfEdges: Edge[] = data.data.edges.map((e: APIGraphEdge, i: number) => ({
-                    id: `e-${i}`,
+            targetEdges.forEach((e: APIGraphEdge) => {
+                const isAdded = !baseEdgeSet.has(`${e.source}->${e.target}`);
+                rfEdges.push({
+                    id: `e-${idCounter++}`,
                     source: e.source,
                     target: e.target,
                     type: 'custom',
-                    data: { isHighlighted: false },
+                    data: { isHighlighted: false, diffStatus: isAdded ? 'added' : 'unchanged' },
                     animated: false,
-                }));
+                });
+            });
 
-                // Apply dagre layout
-                const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges);
+            // Added deleted edges from previous snapshot
+            const targetEdgeSet = new Set(targetEdges.map((e: APIGraphEdge) => `${e.source}->${e.target}`));
+            for (const prevEdge of prevSnapshot.edges) {
+                if (!targetEdgeSet.has(`${prevEdge.source}->${prevEdge.target}`)) {
+                    // Deleted Edge! Include the nodes if they were completely deleted
+                    [prevEdge.source, prevEdge.target].forEach(nodeId => {
+                        if (!targetNodeIds.has(nodeId)) {
+                            targetNodeIds.add(nodeId);
+                            const oldNode = prevNodesMap.get(nodeId)!;
+                            rfNodes.push({
+                                id: oldNode.id,
+                                type: 'custom',
+                                position: { x: 0, y: 0 },
+                                data: {
+                                    label: oldNode.label,
+                                    nodeType: oldNode.type,
+                                    loc: oldNode.loc,
+                                    inDegree: oldNode.inDegree,
+                                    outDegree: oldNode.outDegree,
+                                    isCritical: false,
+                                    isHighlighted: false,
+                                    isHeatmap: false,
+                                    filePath: oldNode.path,
+                                    diffStatus: 'deleted'
+                                },
+                            });
+                        }
+                    });
 
-                setNodes(layoutedNodes);
-                setEdges(layoutedEdges);
-            } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : 'Unknown error');
-            } finally {
-                setLoading(false);
+                    rfEdges.push({
+                        id: `e-${idCounter++}`,
+                        source: prevEdge.source,
+                        target: prevEdge.target,
+                        type: 'custom',
+                        data: { isHighlighted: false, diffStatus: 'deleted' },
+                        animated: true,
+                    });
+                }
             }
         }
 
-        fetchGraph();
-    }, [repoId, setNodes, setEdges]);
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges);
+
+        setRawNodes(rfNodes.map(n => ({ id: n.id, label: n.data.label as string, type: n.data.nodeType as string, path: n.data.filePath as string, imports: [], exports: [], loc: n.data.loc as number, inDegree: n.data.inDegree as number, outDegree: n.data.outDegree as number })));
+        setNodes(layoutedNodes);
+        setEdges(layoutedEdges);
+
+    }, [activeHistoryIndex, history, metrics, setNodes, setEdges]);
 
     // Keep a ref to edges for hover lookups (avoids infinite loop)
     const edgesRef = useRef<Edge[]>([]);
@@ -397,6 +515,15 @@ export default function GraphPage() {
                     node={selectedNode}
                     isCritical={isCritical}
                     onClose={() => setSelectedNode(null)}
+                />
+            )}
+
+            {/* Timeline Slider */}
+            {activeHistoryIndex !== null && history && history.length > 1 && (
+                <TimelineSlider
+                    commits={history.map(h => ({ sha: h.commitHash, message: h.message, date: h.date }))}
+                    selectedIndex={activeHistoryIndex}
+                    onChange={setActiveHistoryIndex}
                 />
             )}
 

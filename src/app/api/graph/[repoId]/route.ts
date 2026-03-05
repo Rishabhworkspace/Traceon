@@ -50,7 +50,8 @@ export async function GET(
             data: {
                 nodes: analysis.nodes,
                 edges: analysis.edges,
-                metrics: analysis.metrics
+                metrics: analysis.metrics,
+                history: analysis.history
             }
         }, { status: 200 });
 

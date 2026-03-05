@@ -22,6 +22,7 @@ interface CustomNodeData {
     isCritical: boolean;
     isHighlighted: boolean;
     isHeatmap?: boolean;
+    diffStatus?: 'added' | 'deleted' | 'unchanged';
     filePath: string;
     [key: string]: unknown;
 }
@@ -32,6 +33,7 @@ function CustomNode({ data, selected }: { data: CustomNodeData; selected?: boole
     const isCritical = data.isCritical;
     const isHighlighted = data.isHighlighted;
     const isHeatmap = data.isHeatmap;
+    const diffStatus = data.diffStatus;
 
     // Calculate complexity score (0.0 to 1.0 roughly)
     const rawScore = (data.loc / 300) + (data.inDegree * 0.1) + (data.outDegree * 0.1);
@@ -39,17 +41,33 @@ function CustomNode({ data, selected }: { data: CustomNodeData; selected?: boole
 
     // Hot gradient: blue -> green -> yellow -> red
     const heatmapColor = `hsl(${((1 - score) * 240).toString(10)}, 80%, 50%)`;
-    const activeColor = isHeatmap ? heatmapColor : config.color;
-    const activeBg = isHeatmap ? `${heatmapColor.slice(0, -1)}, 0.15)` : config.bg;
+    let activeColor = isHeatmap ? heatmapColor : config.color;
+    let activeBg = isHeatmap ? `${heatmapColor.slice(0, -1)}, 0.15)` : config.bg;
     const activeHighlightBg = isHeatmap ? `${heatmapColor.slice(0, -1)}, 0.25)` : config.bg;
-    const activeBorder = isHeatmap ? `${heatmapColor.slice(0, -1)}, 0.4)` : config.border;
+    let activeBorder = isHeatmap ? `${heatmapColor.slice(0, -1)}, 0.4)` : config.border;
+    let borderStyle = 'solid';
+    let opacity = 1;
+
+    // Override for diff status
+    if (diffStatus === 'added') {
+        activeColor = '#10b981'; // Emerald/Green
+        activeBg = 'rgba(16,185,129,0.1)';
+        activeBorder = 'rgba(16,185,129,0.6)';
+    } else if (diffStatus === 'deleted') {
+        activeColor = '#ef4444'; // Red
+        activeBg = 'rgba(239,68,68,0.05)';
+        activeBorder = 'rgba(239,68,68,0.5)';
+        borderStyle = 'dashed';
+        opacity = 0.7;
+    }
 
     return (
         <div
             className="relative group"
             style={{
+                opacity,
                 background: isHighlighted ? activeHighlightBg : 'rgba(15,15,15,0.95)',
-                border: `1.5px solid ${selected ? activeColor : isHighlighted || isHeatmap ? activeBorder : 'rgba(255,255,255,0.06)'}`,
+                border: `1.5px ${borderStyle} ${selected ? activeColor : isHighlighted || isHeatmap || diffStatus !== 'unchanged' ? activeBorder : 'rgba(255,255,255,0.06)'}`,
                 borderRadius: '10px',
                 padding: '10px 14px',
                 minWidth: '140px',
@@ -58,7 +76,7 @@ function CustomNode({ data, selected }: { data: CustomNodeData; selected?: boole
                 transition: 'all 0.4s ease',
                 boxShadow: selected
                     ? `0 0 20px ${activeColor.replace('hsl', 'hsla').replace(')', ', 0.3)')}, 0 0 40px ${activeColor.replace('hsl', 'hsla').replace(')', ', 0.1)')}`
-                    : (isCritical || isHeatmap)
+                    : (isCritical || isHeatmap || diffStatus === 'added')
                         ? `0 0 12px ${activeColor.replace('hsl', 'hsla').replace(')', ', 0.2)')}`
                         : '0 2px 8px rgba(0,0,0,0.3)',
             }}
