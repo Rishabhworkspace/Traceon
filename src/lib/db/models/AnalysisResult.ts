@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IGraphNode {
     id: string;
     label: string;
-    type: 'entry' | 'module' | 'utility' | 'component' | 'config' | 'other';
+    type: 'type' | 'entry' | 'module' | 'utility' | 'component' | 'config' | 'other';
     path: string;
     imports: string[];
     exports: string[];
@@ -33,6 +33,13 @@ export interface IAnalysisResult extends Document {
     nodes: IGraphNode[];
     edges: IGraphEdge[];
     metrics: IMetrics;
+    history?: {
+        commitHash: string;
+        message: string;
+        date: string;
+        nodes: IGraphNode[];
+        edges: IGraphEdge[];
+    }[];
     createdAt: Date;
 }
 
@@ -42,7 +49,7 @@ const GraphNodeSchema = new Schema<IGraphNode>(
         label: { type: String, required: true },
         type: {
             type: String,
-            enum: ['entry', 'module', 'utility', 'component', 'config', 'other'],
+            enum: ['type', 'entry', 'module', 'utility', 'component', 'config', 'other'],
             default: 'module',
         },
         path: { type: String, required: true },
@@ -81,6 +88,17 @@ const MetricsSchema = new Schema<IMetrics>(
     { _id: false }
 );
 
+const HistorySchema = new Schema(
+    {
+        commitHash: { type: String, required: true },
+        message: { type: String, required: true },
+        date: { type: String, required: true },
+        nodes: [GraphNodeSchema],
+        edges: [GraphEdgeSchema],
+    },
+    { _id: false }
+);
+
 const AnalysisResultSchema = new Schema<IAnalysisResult>(
     {
         repositoryId: {
@@ -92,6 +110,10 @@ const AnalysisResultSchema = new Schema<IAnalysisResult>(
         nodes: [GraphNodeSchema],
         edges: [GraphEdgeSchema],
         metrics: MetricsSchema,
+        history: {
+            type: [HistorySchema],
+            default: undefined,
+        },
     },
     {
         timestamps: true,

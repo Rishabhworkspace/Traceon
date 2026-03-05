@@ -14,7 +14,7 @@ export interface CloneResult {
  * Uses the direct download URL (no API, no redirects, no rate limits for public repos).
  * Extracts with adm-zip (pure JS, no native dependencies).
  */
-export async function cloneRepository(repoUrl: string): Promise<CloneResult> {
+export async function cloneRepository(repoUrl: string, commit: string = 'HEAD'): Promise<CloneResult> {
     const tempDir = path.join(os.tmpdir(), `traceon-${uuidv4()}`);
     const tempZip = `${tempDir}.zip`;
 
@@ -22,14 +22,17 @@ export async function cloneRepository(repoUrl: string): Promise<CloneResult> {
         await fs.mkdir(tempDir, { recursive: true });
 
         // Parse owner/repo from the GitHub URL
-        const match = repoUrl.match(/github\.com\/([^/]+)\/([^/.]+)/);
+        // A repository name can have dots (e.g. Portfolio-2.0). 
+        // Using `([^/]+)` to grab the entire repo name. If there's `.git`, strip it.
+        const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
         if (!match) {
             throw new Error('Invalid GitHub URL format');
         }
-        const [, owner, repo] = match;
+        const [, owner, rawRepo] = match;
+        const repo = rawRepo.replace(/\.git$/, '');
 
         // Direct download URL — no API calls, no redirects, no rate limits
-        const zipUrl = `https://codeload.github.com/${owner}/${repo}/zip/HEAD`;
+        const zipUrl = `https://codeload.github.com/${owner}/${repo}/zip/${commit}`;
 
         console.log(`[Traceon] Downloading: ${zipUrl}`);
 
