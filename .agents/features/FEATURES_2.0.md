@@ -1,3 +1,7 @@
+---
+description: Traceon 2.0 Feature Roadmap & Implementation Tracking
+---
+
 # Traceon 2.0 Feature Backlog
 
 This document outlines the proposed roadmap for the next major iteration of Traceon, organized into implementation phases. 
