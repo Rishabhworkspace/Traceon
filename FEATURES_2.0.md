@@ -3,13 +3,13 @@
 This document outlines the proposed roadmap for the next major iteration of Traceon, organized into implementation phases. 
 
 ## Phase 1: Interactive Graph Enhancements
-*   **[ ] Full-text Node Search**: Add a search bar to instantly locate specific files/modules inside the graph space and zoom to them.
-*   **[ ] Sub-graph Expansion**: Collapse directories into single nodes to reduce noise, and allow double-clicking to expand them in-place.
+*   **[x] Full-text Node Search**: Add a search bar to instantly locate specific files/modules inside the graph space and zoom to them.
+*   **[x] Sub-graph Expansion**: Collapse directories into single nodes to reduce noise, and allow double-clicking to expand them in-place.
 *   **[ ] Architectural Heatmaps**: Color code nodes based on churn (git history - frequently changed) or cyclomatic complexity metadata from AST.
 
 ## Phase 2: Advanced AI Capabilities (Traceon AI)
 *   **[ ] Architecture Summarization**: Generate automated `README.architecture.md` style pages based on the graph shape and component relationships.
-*   **[ ] Codebase Chat**: Directly map prompts to the graph (e.g., Ask "Why does `api/auth` depend on `components/ui`?" and receive an AI response highlighting the exact edges).
+*   **[x] Codebase Chat**: Directly map prompts to the graph (e.g., Ask "Why does `api/auth` depend on `components/ui`?" and receive an AI response highlighting the exact edges).
 *   **[ ] Refactoring Suggestions**: Automatically highlight "God objects" (nodes with massive edge counts) and suggest modularization strategies.
 
 ## Phase 3: Monorepo Support / Workspace Visualization
