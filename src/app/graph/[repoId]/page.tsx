@@ -142,7 +142,7 @@ export default function GraphPage() {
                         outDegree: n.outDegree,
                         isCritical: criticalSet.has(n.id),
                         isHighlighted: false,
-                        isHeatmap: isHeatmap,
+                        isHeatmap: false,
                         filePath: n.path,
                     },
                 }));

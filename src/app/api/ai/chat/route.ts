@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { streamText, generateText } from 'ai';
+import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createAnthropic } from '@ai-sdk/anthropic';
@@ -103,11 +103,11 @@ export async function POST(req: NextRequest) {
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('AI Chat Error:', error);
 
         // Handle gracefully if missing key
-        const errMsg = error?.message || 'Unknown error occurred';
+        const errMsg = error instanceof Error ? error.message : 'Unknown error occurred';
         if (errMsg.includes('api_key') || errMsg.includes('API key')) {
             return new NextResponse(
                 JSON.stringify({ error: 'API key is missing or invalid for the selected model. Add it to .env.' }),

@@ -86,11 +86,12 @@ export default function AIChatPanel({ repoId }: AIChatPanelProps) {
                     m.id === assistantMessageId ? { ...m, content: assistantMessage } : m
                 ));
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Network error';
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
-                content: `An unexpected error occurred: ${error.message || 'Network error'}`
+                content: `An unexpected error occurred: ${errorMessage}`
             }]);
         } finally {
             setIsLoading(false);
@@ -112,8 +113,8 @@ export default function AIChatPanel({ repoId }: AIChatPanelProps) {
     return (
         <div
             className={`absolute z-50 transition-all duration-300 ease-in-out flex flex-col bg-[#0d0d0d]/95 backdrop-blur-xl border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.6)] rounded-t-xl rounded-bl-xl ${isExpanded
-                    ? 'bottom-0 left-0 right-0 h-[60vh] rounded-none sm:bottom-6 sm:left-[auto] sm:right-6 sm:w-[600px] sm:h-[80vh] sm:rounded-xl'
-                    : 'bottom-6 right-6 w-[360px] sm:w-[400px] h-[500px]'
+                ? 'bottom-0 left-0 right-0 h-[60vh] rounded-none sm:bottom-6 sm:left-[auto] sm:right-6 sm:w-[600px] sm:h-[80vh] sm:rounded-xl'
+                : 'bottom-6 right-6 w-[360px] sm:w-[400px] h-[500px]'
                 }`}
         >
             {/* Header */}
@@ -193,8 +194,8 @@ export default function AIChatPanel({ repoId }: AIChatPanelProps) {
                             </div>
                             <div
                                 className={`px-4 py-2.5 rounded-2xl max-w-[85%] text-sm leading-relaxed whitespace-pre-wrap ${m.role === 'user'
-                                        ? 'bg-emerald-600 text-white rounded-tr-sm'
-                                        : 'bg-[#1c1c1f] border border-white/5 text-gray-200 rounded-tl-sm'
+                                    ? 'bg-emerald-600 text-white rounded-tr-sm'
+                                    : 'bg-[#1c1c1f] border border-white/5 text-gray-200 rounded-tl-sm'
                                     }`}
                                 style={{ wordBreak: 'break-word' }}
                             >
