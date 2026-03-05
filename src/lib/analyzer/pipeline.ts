@@ -1,105 +1,76 @@
 import dbConnect from '@/lib/db/connection';
 import Repository from '@/lib/db/models/Repository';
-import File, { IFile } from '@/lib/db/models/File';
+import File from '@/lib/db/models/File';
 import AnalysisResult from '@/lib/db/models/AnalysisResult';
-import { scanDirectory } from '@/lib/analyzer/scanner';
-import { parseFileContent } from '@/lib/analyzer/parser';
-import { calculateGraph } from '@/lib/analyzer/graph/builder';
-import path from 'node:path';
-import fs from 'node:fs/promises';
+import { extractGraphData } from '@/lib/analyzer/extractor';
+import { fetchRecentCommits } from '@/lib/analyzer/github';
+import { cloneRepository } from '@/lib/analyzer/clone';
 
-export async function runAnalysisPipeline(repoId: string, repoPath: string, cleanupFunction?: (() => Promise<void>) | null) {
+export async function runAnalysisPipeline(repoId: string, repoPath: string, repoUrl: string, cleanupFunction?: (() => Promise<void>) | null) {
+    const cleanups: Array<() => Promise<void>> = [];
+    if (cleanupFunction) cleanups.push(cleanupFunction);
+
     try {
         await dbConnect();
-
-        // 1. Mark as scanning
         await Repository.findByIdAndUpdate(repoId, { status: 'scanning' });
 
-        // 2. Scan files
-        const scannedFiles = await scanDirectory(repoPath);
+        // 1. Fetch recent commits (Top 3)
+        const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let commits: any[] = [];
+        if (match) {
+            const [, owner, rawRepo] = match;
+            const repo = rawRepo.replace(/\.git$/, '');
+            commits = await fetchRecentCommits(owner, repo, 3);
+        }
 
-        // 3. Build parsed file records
-        const PARSING_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx']);
+        // 2. Extract Data for HEAD
+        await Repository.findByIdAndUpdate(repoId, { status: 'parsing' });
+        const headResult = await extractGraphData(repoId, repoPath);
 
-        await Repository.findByIdAndUpdate(repoId, {
-            status: 'parsing',
-            fileCount: scannedFiles.length,
-        });
+        await Repository.findByIdAndUpdate(repoId, { fileCount: headResult.filesToReturn.length });
 
-        const filesToProcess = scannedFiles.filter(f => PARSING_EXTENSIONS.has(f.extension)).map(f => ({
-            ...f,
-            fullPath: path.join(repoPath, f.path)
-        }));
-        const otherFiles = scannedFiles.filter(f => !PARSING_EXTENSIONS.has(f.extension));
+        const chunkSize = 500;
+        for (let i = 0; i < headResult.filesToReturn.length; i += chunkSize) {
+            await File.insertMany(headResult.filesToReturn.slice(i, i + chunkSize));
+        }
 
-        // 4. Parse files inline (no worker threads — compatible with Vercel serverless)
-        const filesToInsert = [];
+        // 3. Process History Snapshots
+        await Repository.findByIdAndUpdate(repoId, { status: 'analyzing' });
 
-        for (const file of filesToProcess) {
-            try {
-                const content = await fs.readFile(file.fullPath, 'utf-8');
-                const parsed = parseFileContent(content, file.name);
-                filesToInsert.push({
-                    repositoryId: repoId,
-                    path: file.path,
-                    name: file.name,
-                    extension: file.extension,
-                    type: 'file',
-                    loc: parsed.loc,
-                    imports: parsed.imports,
-                    exports: parsed.exports,
-                    functions: parsed.functions,
-                    classes: parsed.classes,
-                });
-            } catch (err) {
-                console.warn(`Failed to parse file ${file.path}:`, err);
-                filesToInsert.push({
-                    repositoryId: repoId,
-                    path: file.path,
-                    name: file.name,
-                    extension: file.extension,
-                    type: 'file',
-                    loc: 0,
-                    imports: [],
-                    exports: [],
-                    functions: [],
-                    classes: [],
-                });
+        const historySnapshots = [];
+
+        // Skip index 0 assuming it matches HEAD 
+        // Just process the older ones from index 1..2
+        if (commits.length > 1) {
+            for (let i = 1; i < commits.length; i++) {
+                const commit = commits[i];
+                try {
+                    console.log(`[Traceon] Analyzing historical commit: ${commit.sha}`);
+                    const cloneRes = await cloneRepository(repoUrl, commit.sha);
+                    cleanups.push(cloneRes.cleanup);
+
+                    const histData = await extractGraphData(repoId, cloneRes.repoPath);
+                    historySnapshots.push({
+                        commitHash: commit.sha,
+                        message: commit.message,
+                        date: commit.date,
+                        nodes: histData.graphData.nodes,
+                        edges: histData.graphData.edges
+                    });
+                } catch {
+                    console.warn(`[Traceon] Skipping history for commit ${commit.sha} due to error`);
+                }
             }
         }
 
-        // Add the unparsed files (just basic metadata)
-        for (const file of otherFiles) {
-            filesToInsert.push({
-                repositoryId: repoId,
-                path: file.path,
-                name: file.name,
-                extension: file.extension,
-                type: 'file',
-                loc: 0,
-                imports: [],
-                exports: [],
-                functions: [],
-                classes: [],
-            });
-        }
-
-        if (filesToInsert.length > 0) {
-            // Chunking to avoid MongoDB document size limits on huge inserts
-            const chunkSize = 500;
-            for (let i = 0; i < filesToInsert.length; i += chunkSize) {
-                await File.insertMany(filesToInsert.slice(i, i + chunkSize));
-            }
-        }
-
-        // 5. Build the Dependency Graph and compute metrics
-        const graphData = calculateGraph(filesToInsert as unknown as IFile[]);
-
+        // 4. Save Final Analysis Result
         await AnalysisResult.create({
             repositoryId: repoId,
-            nodes: graphData.nodes,
-            edges: graphData.edges,
-            metrics: graphData.metrics,
+            nodes: headResult.graphData.nodes,
+            edges: headResult.graphData.edges,
+            metrics: headResult.graphData.metrics,
+            history: historySnapshots.length > 0 ? historySnapshots : undefined
         });
 
         await Repository.findByIdAndUpdate(repoId, {
@@ -115,9 +86,8 @@ export async function runAnalysisPipeline(repoId: string, repoPath: string, clea
             errorMessage: msg
         });
     } finally {
-        // 6. Cleanup temp files
-        if (cleanupFunction) {
-            await cleanupFunction();
+        for (const cleanup of cleanups) {
+            await cleanup().catch(() => { });
         }
     }
 }
