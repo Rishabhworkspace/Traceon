@@ -9,7 +9,7 @@ This document outlines the proposed roadmap for the next major iteration of Trac
 ## Phase 1: Interactive Graph Enhancements
 *   **[x] Full-text Node Search**: Add a search bar to instantly locate specific files/modules inside the graph space and zoom to them.
 *   **[x] Sub-graph Expansion**: Collapse directories into single nodes to reduce noise, and allow double-clicking to expand them in-place.
-*   **[ ] Architectural Heatmaps**: Color code nodes based on churn (git history - frequently changed) or cyclomatic complexity metadata from AST.
+*   **[x] Architectural Heatmaps**: Color code nodes based on churn (git history - frequently changed) or cyclomatic complexity metadata from AST.
 
 ## Phase 2: Advanced AI Capabilities (Traceon AI)
 *   **[ ] Architecture Summarization**: Generate automated `README.architecture.md` style pages based on the graph shape and component relationships.
