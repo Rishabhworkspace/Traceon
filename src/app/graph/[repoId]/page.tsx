@@ -23,6 +23,7 @@ import FileInspector from '@/components/graph/FileInspector';
 import GraphLegend from '@/components/graph/GraphLegend';
 import GraphToolbar from '@/components/graph/GraphToolbar';
 import ImpactPanel from '@/components/graph/ImpactPanel';
+import AIChatPanel from '@/components/graph/AIChatPanel';
 
 interface APIGraphNode {
     id: string;
@@ -392,6 +393,9 @@ export default function GraphPage() {
                     onClose={() => setSelectedNode(null)}
                 />
             )}
+
+            {/* AI Chat Panel */}
+            <AIChatPanel repoId={repoId} />
         </div>
     );
 }
