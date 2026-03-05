@@ -6,6 +6,10 @@ interface AIChatPanelProps {
 }
 
 const AI_MODELS = [
+    { id: 'gpt-oss-120b', name: 'GPT OSS 120B', provider: 'cerebras' },
+    { id: 'llama3.1-8b', name: 'Llama 3.1 8B', provider: 'cerebras' },
+    { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'groq' },
+    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', provider: 'groq' },
     { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'google' },
     { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai' },
     { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', provider: 'anthropic' },

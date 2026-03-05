@@ -76,6 +76,25 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-text-3);
   }
+
+  /* ─── React Flow Overrides ─── */
+  .react-flow__controls-button {
+    background-color: var(--color-surface-2) !important;
+    border-bottom: 1px solid var(--color-stroke) !important;
+    transition: background-color 0.2s ease, fill 0.2s ease;
+  }
+  
+  .react-flow__controls-button:last-child {
+    border-bottom: none !important;
+  }
+
+  .react-flow__controls-button:hover {
+    background-color: var(--color-surface-4) !important;
+  }
+
+  .react-flow__controls-button svg {
+    fill: var(--color-text-1) !important;
+  }
 }
 
 @layer components {

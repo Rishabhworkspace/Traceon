@@ -308,7 +308,7 @@ export default function GraphPage() {
     }
 
     return (
-        <div className="w-full h-screen relative" style={{ background: '#080808' }}>
+        <div className="w-full h-[calc(100vh-3.5rem)] relative overflow-hidden" style={{ background: '#080808' }}>
             {/* Back button */}
             <button
                 onClick={() => router.push('/dashboard')}
@@ -364,6 +364,7 @@ export default function GraphPage() {
                         background: 'rgba(13,13,13,0.9)',
                         border: '1px solid rgba(255,255,255,0.06)',
                         borderRadius: '10px',
+                        bottom: '90px', // Lifted slightly above the ChatPanel
                     }}
                     nodeColor={(node) => {
                         const type = node.data?.nodeType as string;

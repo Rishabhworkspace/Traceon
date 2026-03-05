@@ -52,3 +52,12 @@ next-env.d.ts
 /trae/
 /.trae/
 /docs/
+
+# throwaway / test files
+test-api.mjs
+test*.mjs
+test*.js
+test*.ts
+
+# skills configuration
+skills-lock.json

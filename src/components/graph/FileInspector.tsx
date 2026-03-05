@@ -43,7 +43,7 @@ export default function FileInspector({ node, isCritical, onClose }: FileInspect
 
     return (
         <div
-            className="fixed right-0 top-0 h-full w-[380px] z-50 overflow-y-auto"
+            className="absolute right-0 top-0 h-full w-[380px] z-40 overflow-y-auto"
             style={{
                 background: 'linear-gradient(180deg, #0d0d0d 0%, #111111 100%)',
                 borderLeft: '1px solid rgba(255,255,255,0.06)',
@@ -52,16 +52,16 @@ export default function FileInspector({ node, isCritical, onClose }: FileInspect
         >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                <div className="flex items-center gap-2">
-                    <FileCode2 size={16} style={{ color }} />
-                    <span className="text-sm font-semibold text-white truncate max-w-[260px]">{node.label}</span>
+                <div className="flex flex-1 items-center gap-2 min-w-0 pr-4">
+                    <FileCode2 size={16} style={{ color }} className="flex-shrink-0" />
+                    <span className="text-sm font-semibold text-white truncate block">{node.label}</span>
                 </div>
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors border border-white/20 z-[60]"
+                    className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-colors border border-white/10 flex-shrink-0"
                     title="Close Details"
                 >
-                    <X size={16} className="text-white" />
+                    <X size={15} className="text-gray-400 hover:text-white" />
                 </button>
             </div>
 

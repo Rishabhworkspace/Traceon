@@ -20,6 +20,16 @@ const anthropic = createAnthropic({
     apiKey: process.env.ANTHROPIC_API_KEY || 'MISSING_KEY',
 });
 
+const cerebras = createOpenAI({
+    baseURL: 'https://api.cerebras.ai/v1',
+    apiKey: process.env.CEREBRAS_API_KEY || 'MISSING_KEY',
+});
+
+const groq = createOpenAI({
+    baseURL: 'https://api.groq.com/openai/v1',
+    apiKey: process.env.GROQ_API_KEY || 'MISSING_KEY',
+});
+
 export async function POST(req: NextRequest) {
     try {
         const { messages, repoId, model } = await req.json();
@@ -65,6 +75,18 @@ export async function POST(req: NextRequest) {
                         selectedLanguageModel = anthropic('claude-3-5-sonnet-20241022');
                     }
                     break;
+                case 'gpt-oss-120b':
+                case 'llama3.1-8b':
+                    if (process.env.CEREBRAS_API_KEY) {
+                        selectedLanguageModel = cerebras(model);
+                    }
+                    break;
+                case 'llama-3.3-70b-versatile':
+                case 'llama-3.1-8b-instant':
+                    if (process.env.GROQ_API_KEY) {
+                        selectedLanguageModel = groq(model);
+                    }
+                    break;
                 default:
                     // Fallback to whatever is available or just fail gracefully below
                     break;
@@ -95,13 +117,7 @@ export async function POST(req: NextRequest) {
             messages: messages,
         });
 
-        return new Response(result.textStream, {
-            headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
-                'Cache-Control': 'no-cache',
-                'Connection': 'keep-alive',
-            }
-        });
+        return result.toTextStreamResponse();
 
     } catch (error: unknown) {
         console.error('AI Chat Error:', error);
