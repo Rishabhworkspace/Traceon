@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, X, ChevronDown } from 'lucide-react';
+import { Search, Filter, X, ChevronDown, Flame } from 'lucide-react';
 
 interface GraphToolbarProps {
     totalFiles: number;
@@ -11,6 +11,8 @@ interface GraphToolbarProps {
     onSearch: (query: string) => void;
     onFilterType: (type: string | null) => void;
     activeFilter: string | null;
+    isHeatmap: boolean;
+    onToggleHeatmap: (val: boolean) => void;
 }
 
 const NODE_TYPES = ['entry', 'component', 'utility', 'module', 'config', 'other'];
@@ -32,6 +34,8 @@ export default function GraphToolbar({
     onSearch,
     onFilterType,
     activeFilter,
+    isHeatmap,
+    onToggleHeatmap,
 }: GraphToolbarProps) {
     const [searchText, setSearchText] = useState('');
     const [filterOpen, setFilterOpen] = useState(false);
@@ -96,6 +100,19 @@ export default function GraphToolbar({
                         </button>
                     )}
                 </div>
+
+                {/* Heatmap Toggle */}
+                <button
+                    onClick={() => onToggleHeatmap(!isHeatmap)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${isHeatmap
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-white/[0.04] text-gray-400 border border-white/[0.06] hover:bg-white/[0.08]'
+                        }`}
+                    title="Toggle Complexity Heatmap"
+                >
+                    <Flame size={13} className={isHeatmap ? 'animate-pulse' : ''} />
+                    <span className="hidden sm:inline">Heatmap</span>
+                </button>
 
                 {/* Filter — desktop inline */}
                 <div className="hidden md:flex items-center gap-1 pl-2 border-l border-white/5">

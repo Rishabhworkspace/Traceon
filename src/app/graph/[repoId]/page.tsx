@@ -109,6 +109,7 @@ export default function GraphPage() {
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState<string | null>(null);
+    const [isHeatmap, setIsHeatmap] = useState(false);
     const [impactOpen, setImpactOpen] = useState(false);
 
     // Fetch graph data
@@ -141,6 +142,7 @@ export default function GraphPage() {
                         outDegree: n.outDegree,
                         isCritical: criticalSet.has(n.id),
                         isHighlighted: false,
+                        isHeatmap: isHeatmap,
                         filePath: n.path,
                     },
                 }));
@@ -232,10 +234,11 @@ export default function GraphPage() {
                     ...n,
                     hidden: !visible,
                     style: { ...n.style, opacity: visible ? 1 : 0.1 },
+                    data: { ...n.data, isHeatmap },
                 };
             })
         );
-    }, [searchQuery, filterType, setNodes]);
+    }, [searchQuery, filterType, isHeatmap, setNodes]);
 
     const onNodeClick = useCallback(
         (_: React.MouseEvent, node: Node) => {
@@ -325,6 +328,8 @@ export default function GraphPage() {
                     onSearch={setSearchQuery}
                     onFilterType={setFilterType}
                     activeFilter={filterType}
+                    isHeatmap={isHeatmap}
+                    onToggleHeatmap={setIsHeatmap}
                 />
             )}
 

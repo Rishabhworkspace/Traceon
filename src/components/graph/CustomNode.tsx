@@ -21,6 +21,7 @@ interface CustomNodeData {
     outDegree: number;
     isCritical: boolean;
     isHighlighted: boolean;
+    isHeatmap?: boolean;
     filePath: string;
     [key: string]: unknown;
 }
@@ -30,23 +31,35 @@ function CustomNode({ data, selected }: { data: CustomNodeData; selected?: boole
     const Icon = config.icon;
     const isCritical = data.isCritical;
     const isHighlighted = data.isHighlighted;
+    const isHeatmap = data.isHeatmap;
+
+    // Calculate complexity score (0.0 to 1.0 roughly)
+    const rawScore = (data.loc / 300) + (data.inDegree * 0.1) + (data.outDegree * 0.1);
+    const score = Math.min(1, Math.max(0, rawScore));
+
+    // Hot gradient: blue -> green -> yellow -> red
+    const heatmapColor = `hsl(${((1 - score) * 240).toString(10)}, 80%, 50%)`;
+    const activeColor = isHeatmap ? heatmapColor : config.color;
+    const activeBg = isHeatmap ? `${heatmapColor.slice(0, -1)}, 0.15)` : config.bg;
+    const activeHighlightBg = isHeatmap ? `${heatmapColor.slice(0, -1)}, 0.25)` : config.bg;
+    const activeBorder = isHeatmap ? `${heatmapColor.slice(0, -1)}, 0.4)` : config.border;
 
     return (
         <div
             className="relative group"
             style={{
-                background: isHighlighted ? config.bg : 'rgba(15,15,15,0.95)',
-                border: `1.5px solid ${selected ? config.color : isHighlighted ? config.border : 'rgba(255,255,255,0.06)'}`,
+                background: isHighlighted ? activeHighlightBg : 'rgba(15,15,15,0.95)',
+                border: `1.5px solid ${selected ? activeColor : isHighlighted || isHeatmap ? activeBorder : 'rgba(255,255,255,0.06)'}`,
                 borderRadius: '10px',
                 padding: '10px 14px',
                 minWidth: '140px',
                 maxWidth: '220px',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.4s ease',
                 boxShadow: selected
-                    ? `0 0 20px ${config.color}30, 0 0 40px ${config.color}10`
-                    : isCritical
-                        ? `0 0 12px ${config.color}20`
+                    ? `0 0 20px ${activeColor.replace('hsl', 'hsla').replace(')', ', 0.3)')}, 0 0 40px ${activeColor.replace('hsl', 'hsla').replace(')', ', 0.1)')}`
+                    : (isCritical || isHeatmap)
+                        ? `0 0 12px ${activeColor.replace('hsl', 'hsla').replace(')', ', 0.2)')}`
                         : '0 2px 8px rgba(0,0,0,0.3)',
             }}
         >
@@ -54,7 +67,7 @@ function CustomNode({ data, selected }: { data: CustomNodeData; selected?: boole
                 type="target"
                 position={Position.Top}
                 style={{
-                    background: config.color,
+                    background: activeColor,
                     border: 'none',
                     width: 6,
                     height: 6,
@@ -64,16 +77,17 @@ function CustomNode({ data, selected }: { data: CustomNodeData; selected?: boole
             <div className="flex items-center gap-2 mb-1.5">
                 <div
                     style={{
-                        background: config.bg,
-                        border: `1px solid ${config.border}`,
+                        background: activeBg,
+                        border: `1px solid ${activeBorder}`,
                         borderRadius: '6px',
                         padding: '4px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        transition: 'all 0.4s ease',
                     }}
                 >
-                    <Icon size={12} style={{ color: config.color }} />
+                    <Icon size={12} style={{ color: activeColor, transition: 'all 0.4s ease' }} />
                 </div>
                 <span
                     className="text-xs font-semibold truncate"
@@ -110,7 +124,7 @@ function CustomNode({ data, selected }: { data: CustomNodeData; selected?: boole
                 type="source"
                 position={Position.Bottom}
                 style={{
-                    background: config.color,
+                    background: activeColor,
                     border: 'none',
                     width: 6,
                     height: 6,
