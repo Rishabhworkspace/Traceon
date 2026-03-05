@@ -52,6 +52,7 @@ next-env.d.ts
 /trae/
 /.trae/
 /docs/
+/.github/
 
 # throwaway / test files
 test-api.mjs
