@@ -13,15 +13,15 @@ This document outlines the proposed roadmap for the next major iteration of Trac
 *   **[x] Refactoring Suggestions**: Automatically highlight "God objects" (nodes with massive edge counts) and suggest modularization strategies.
 
 ## Phase 3: Monorepo Support / Workspace Visualization
-*   **[ ] Workspace Scanning**: Scale scanning to support enterprise monorepos (Turborepo, Nx, Lerna) with multiple independent packages.
-*   **[ ] Package Boundaries**: Group nodes by package/workspace boundaries and visually segregate them.
-*   **[ ] Boundary Validation**: Show inter-package dependencies and flag architectural rules (e.g., frontend shouldn't import from backend core directly).
+*   **[x] Workspace Scanning**: Scale scanning to support enterprise monorepos (Turborepo, Nx, Lerna) with multiple independent packages.
+*   **[x] Package Boundaries**: Group nodes by package/workspace boundaries and visually segregate them.
+*   **[x] Boundary Validation**: Show inter-package dependencies and flag architectural rules (e.g., frontend shouldn't import from backend core directly).
 
 ## Phase 4: History and Commit Tracking
-*   **[ ] Time-slider Navigation**: View the architectural graph at different commit hashes to see how it evolved over time.
-*   **[ ] Visual Architectural Diffs**: Use red edges for deleted dependencies and green edges for added dependencies across commits.
+*   **[x] Time-slider Navigation**: View the architectural graph at different commit hashes to see how it evolved over time.
+*   **[x] Visual Architectural Diffs**: Use red edges for deleted dependencies and green edges for added dependencies across commits.
 
 ## Phase 5: Export, Reporting, & Integrations
-*   **[ ] High-Resolution Exports**: Export graphs as SVG, PNG, or PDF for documentation and presentations.
-*   **[ ] Static HTML Generation**: Generate a static standalone HTML viewer of the graph to embed directly in company wikis or Notion pages.
+*   **[x] High-Resolution Exports**: Export graphs as SVG, PNG, or PDF for documentation and presentations.
+*   **[x] Static HTML Generation**: Generate a static standalone HTML viewer of the graph to embed directly in company wikis or Notion pages.
 *   **[ ] VS Code Extension**: Bring Traceon directly into the developer's editor to visualize the blast radius of the file they currently have open.
