@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { IFile } from '@/lib/db/models/File';
 import { IGraphNode, IGraphEdge, IMetrics } from '@/lib/db/models/AnalysisResult';
+import type { PackageInfo, WorkspaceInfo } from '@/lib/analyzer/workspace';
 
 export function determineNodeType(filePath: string): IGraphNode['type'] | 'type' {
     const name = path.basename(filePath).toLowerCase();
@@ -180,7 +181,8 @@ export function resolveImportPath(
 export function calculateGraph(
     files: IFile[],
     pathsMatcher?: ((id: string, basePath?: string) => string[] | null) | null,
-    repoPath?: string
+    repoPath?: string,
+    workspaceInfo?: WorkspaceInfo | null
 ) {
     const existingMap = new Map<string, IFile>();
     files.forEach(f => existingMap.set(f.path, f));
@@ -192,6 +194,20 @@ export function calculateGraph(
 
     // 1. Build Base Nodes
     for (const file of files) {
+        // Determine which workspace package this file belongs to
+        let packageName: string | undefined;
+        if (workspaceInfo && workspaceInfo.packages.length > 0) {
+            for (const pkg of workspaceInfo.packages) {
+                if (file.path.startsWith(pkg.path + '/') || file.path === pkg.path) {
+                    packageName = pkg.name;
+                    break;
+                }
+            }
+            if (!packageName) {
+                packageName = workspaceInfo.rootName || '(root)';
+            }
+        }
+
         nodesMap.set(file.path, {
             id: file.path,
             label: path.basename(file.path),
@@ -201,7 +217,8 @@ export function calculateGraph(
             exports: file.exports,
             loc: file.loc,
             inDegree: 0,
-            outDegree: 0
+            outDegree: 0,
+            ...(packageName ? { packageName } : {}),
         });
     }
 
@@ -325,7 +342,8 @@ export function calculateGraph(
         dependencyDensity: nodes.length ? totalDependencies / nodes.length : 0,
         criticalModules,
         circularDependencies: finalCycles,
-        fileTypeDistribution: distribution
+        fileTypeDistribution: distribution,
+        ...(workspaceInfo && workspaceInfo.type !== 'none' ? { workspaceInfo } : {}),
     };
 
     return { nodes, edges, metrics };

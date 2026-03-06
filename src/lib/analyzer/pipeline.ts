@@ -21,7 +21,7 @@ export async function runAnalysisPipeline(repoId: string, repoPath: string, repo
         if (match) {
             const [, owner, rawRepo] = match;
             const repo = rawRepo.replace(/\.git$/, '');
-            commits = await fetchRecentCommits(owner, repo, 3);
+            commits = await fetchRecentCommits(owner, repo, 5);
         }
 
         // 2. Extract Data for HEAD
@@ -55,6 +55,7 @@ export async function runAnalysisPipeline(repoId: string, repoPath: string, repo
                         commitHash: commit.sha,
                         message: commit.message,
                         date: commit.date,
+                        author: commit.author,
                         nodes: histData.graphData.nodes,
                         edges: histData.graphData.edges
                     });

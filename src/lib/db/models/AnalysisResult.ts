@@ -10,6 +10,7 @@ export interface IGraphNode {
     loc: number;
     inDegree: number;
     outDegree: number;
+    packageName?: string;
 }
 
 export interface IGraphEdge {
@@ -19,6 +20,19 @@ export interface IGraphEdge {
     weight: number;
 }
 
+export interface IWorkspacePackage {
+    name: string;
+    path: string;
+    version?: string;
+    dependencies: string[];
+}
+
+export interface IWorkspaceInfo {
+    type: 'turborepo' | 'nx' | 'lerna' | 'pnpm' | 'npm' | 'yarn' | 'none';
+    packages: IWorkspacePackage[];
+    rootName?: string;
+}
+
 export interface IMetrics {
     totalFiles: number;
     totalDependencies: number;
@@ -26,6 +40,7 @@ export interface IMetrics {
     criticalModules: string[];
     circularDependencies: string[][];
     fileTypeDistribution: Record<string, number>;
+    workspaceInfo?: IWorkspaceInfo;
 }
 
 export interface IAnalysisResult extends Document {
@@ -37,6 +52,7 @@ export interface IAnalysisResult extends Document {
         commitHash: string;
         message: string;
         date: string;
+        author?: string;
         nodes: IGraphNode[];
         edges: IGraphEdge[];
     }[];
@@ -58,6 +74,7 @@ const GraphNodeSchema = new Schema<IGraphNode>(
         loc: { type: Number, default: 0 },
         inDegree: { type: Number, default: 0 },
         outDegree: { type: Number, default: 0 },
+        packageName: { type: String },
     },
     { _id: false }
 );
@@ -76,6 +93,25 @@ const GraphEdgeSchema = new Schema<IGraphEdge>(
     { _id: false }
 );
 
+const WorkspacePackageSchema = new Schema(
+    {
+        name: { type: String, required: true },
+        path: { type: String, required: true },
+        version: { type: String },
+        dependencies: [{ type: String }],
+    },
+    { _id: false }
+);
+
+const WorkspaceInfoSchema = new Schema(
+    {
+        type: { type: String, enum: ['turborepo', 'nx', 'lerna', 'pnpm', 'npm', 'yarn', 'none'], default: 'none' },
+        packages: [WorkspacePackageSchema],
+        rootName: { type: String },
+    },
+    { _id: false }
+);
+
 const MetricsSchema = new Schema<IMetrics>(
     {
         totalFiles: { type: Number, default: 0 },
@@ -84,6 +120,7 @@ const MetricsSchema = new Schema<IMetrics>(
         criticalModules: [{ type: String }],
         circularDependencies: [[{ type: String }]],
         fileTypeDistribution: { type: Object, default: {} },
+        workspaceInfo: { type: WorkspaceInfoSchema },
     },
     { _id: false }
 );
@@ -93,6 +130,7 @@ const HistorySchema = new Schema(
         commitHash: { type: String, required: true },
         message: { type: String, required: true },
         date: { type: String, required: true },
+        author: { type: String },
         nodes: [GraphNodeSchema],
         edges: [GraphEdgeSchema],
     },

@@ -1,6 +1,7 @@
 import { scanDirectory } from '@/lib/analyzer/scanner';
 import { parseFileContent } from '@/lib/analyzer/parser';
 import { calculateGraph } from '@/lib/analyzer/graph/builder';
+import { detectWorkspaces } from '@/lib/analyzer/workspace';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { IFile } from '@/lib/db/models/File';
@@ -96,12 +97,18 @@ export async function extractGraphData(repoId: string, repoPath: string) {
         });
     }
 
+    // Detect monorepo workspace structure
+    const workspaceInfo = await detectWorkspaces(repoPath);
+    if (workspaceInfo.type !== 'none') {
+        console.log(`[Traceon] Detected ${workspaceInfo.type} workspace with ${workspaceInfo.packages.length} packages`);
+    }
+
     const matcherCache = new Map<string, ((id: string) => string[]) | null>();
     // Calculate Graph - resolveImportPath needs access to per-file matcher
     const graphData = calculateGraph(filesToReturn as unknown as IFile[], (id: string, basePath?: string) => {
         if (!basePath) return null;
         const matcher = getMatcherForFile(basePath, matcherCache);
         return matcher ? matcher(id) : null;
-    }, repoPath);
+    }, repoPath, workspaceInfo.type !== 'none' ? workspaceInfo : null);
     return { graphData, filesToReturn };
 }
