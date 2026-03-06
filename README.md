@@ -34,10 +34,14 @@ Paste a GitHub URL. Get a visual map of every file, every import, every connecti
 ## Features
 
 - **AST-powered analysis** — Uses the TypeScript Compiler API for proper AST parsing, not regex or string matching.
-- **Interactive dependency graph** — Force-directed graph with zoom, pan, search, and filter via React Flow. Nodes are color-coded by type (entry, component, utility, module, config).
-- **Impact analysis engine** — Select any file to see its impact score (0–100), risk level, direct/transitive dependents, and visual blast radius via reverse BFS traversal.
-- **Circular dependency detection** — Automatically flags `A → B → C → A` loops that cause build issues and bundle bloat.
-- **Dashboard & metrics** — Track analyzed repositories, file counts, dependency density, critical modules, and file type distribution.
+- **Interactive dependency graph** — Force-directed graph with zoom, pan, search, and filter via React Flow. Nodes are color-coded by type.
+- **Traceon AI (Codebase Chat)** — Directly chat with your codebase architecture. Ask questions about component relationships, get refactoring suggestions, and auto-generate architecture summaries.
+- **Time Travel & Architectural Diffs** — View the graph at different commit hashes. See visual diffs (red/green edges) showing how dependencies evolved over time.
+- **Monorepo / Workspace Support** — Visualize dependencies intelligently across packages in enterprise monorepos (Turborepo, Nx, Lerna).
+- **High-Resolution & HTML Exports** — Export your graph as PNG, SVG, PDF, or a standalone interactive static HTML viewer for wikis/Notion.
+- **Impact analysis engine** — Select any file to see its impact score (0–100), risk level, direct/transitive dependents, and visual blast radius.
+- **Circular dependency detection** — Automatically flags `A → B → C → A` loops that cause build issues.
+- **Dashboard & metrics** — Track analyzed repositories, file counts, dependency density, critical modules, and architectural heatmaps.
 - **Multiple ingestion methods** — Paste a GitHub URL or upload a ZIP archive.
 - **Authentication** — Email/password, GitHub OAuth, Google OAuth, JWT sessions, and guest mode.
 
@@ -204,11 +208,13 @@ src/
 - [x] GitHub & Google OAuth
 - [x] ZIP upload support
 - [x] Circular dependency detection
-- [ ] Multi-language support (Python, Go, Rust)
-- [ ] AI-powered refactoring suggestions
-- [ ] Export graph as SVG/PNG
-- [ ] Team collaboration features
+- [x] Traceon AI (Codebase chat & refactoring suggestions)
+- [x] Time-travel architectural commit history & diffs
+- [x] Monorepo & workspace graph visualization
+- [x] Export graph as PNG/SVG/PDF and Interactive HTML
 - [ ] VS Code extension
+- [ ] Multi-language support (Python, Go, Rust)
+- [ ] Team collaboration features
 
 ---
 
