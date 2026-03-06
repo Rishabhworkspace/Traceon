@@ -8,6 +8,8 @@ interface AIChatPanelProps {
 const AI_MODELS = [
     { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'groq', badge: 'Fast' },
     { id: 'llama3.1-8b', name: 'Llama 3.1 8B', provider: 'cerebras', badge: 'Light' },
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'google', badge: 'Smart' },
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'google', badge: 'Fast' },
 ];
 
 const SUGGESTION_CARDS = [
@@ -77,6 +79,9 @@ export default function AIChatPanel({ repoId }: AIChatPanelProps) {
         setIsLoading(true);
 
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
             const response = await fetch('/api/ai/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -84,18 +89,29 @@ export default function AIChatPanel({ repoId }: AIChatPanelProps) {
                     repoId,
                     model: selectedModel,
                     messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-                })
+                }),
+                signal: controller.signal,
             });
 
+            clearTimeout(timeoutId);
+
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                const errorMsg = errorData.error || response.statusText;
-                const adviceMsg = errorData.message ? `\n\n${errorData.message}` : '';
+                let errorMsg = response.statusText;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.error || errorMsg;
+                    if (errorData.message) errorMsg += `\n\n${errorData.message}`;
+                } catch { /* ignore parse error */ }
+
+                // Special handling for rate limit errors
+                if (response.status === 429) {
+                    errorMsg = 'Rate limit reached. Please wait a moment before sending another message.';
+                }
 
                 setMessages(prev => [...prev, {
                     id: crypto.randomUUID(),
                     role: 'assistant',
-                    content: `Error: ${errorMsg}${adviceMsg}`
+                    content: `⚠️ ${errorMsg}`
                 }]);
                 setIsLoading(false);
                 return;
@@ -110,21 +126,38 @@ export default function AIChatPanel({ repoId }: AIChatPanelProps) {
 
             setMessages(prev => [...prev, { id: assistantMessageId, role: 'assistant', content: '' }]);
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+            let streamFailed = false;
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
 
-                assistantMessage += decoder.decode(value, { stream: true });
+                    const chunk = decoder.decode(value, { stream: true });
+                    assistantMessage += chunk;
+                    setMessages(prev => prev.map(m =>
+                        m.id === assistantMessageId ? { ...m, content: assistantMessage } : m
+                    ));
+                }
+            } catch {
+                streamFailed = true;
+            }
+
+            // If the stream produced no content at all, show a meaningful error
+            if (!assistantMessage.trim()) {
                 setMessages(prev => prev.map(m =>
-                    m.id === assistantMessageId ? { ...m, content: assistantMessage } : m
+                    m.id === assistantMessageId
+                        ? { ...m, content: streamFailed ? '⚠️ Connection lost during response. Please try again.' : '⚠️ Received empty response. The model may be rate-limited — try again in a few seconds.' }
+                        : m
                 ));
             }
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Network error';
+            const errorMessage = error instanceof Error
+                ? (error.name === 'AbortError' ? 'Request timed out. The AI model took too long to respond.' : error.message)
+                : 'Network error';
             setMessages(prev => [...prev, {
                 id: crypto.randomUUID(),
                 role: 'assistant',
-                content: `An unexpected error occurred: ${errorMessage}`
+                content: `⚠️ ${errorMessage}`
             }]);
         } finally {
             setIsLoading(false);
