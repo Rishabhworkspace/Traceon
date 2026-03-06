@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, X, ChevronDown, Flame } from 'lucide-react';
+import { Search, Filter, X, ChevronDown, Flame, LayoutGrid, ArrowDown, ArrowRight, Circle, Waypoints } from 'lucide-react';
+
+type LayoutMode = 'hierarchical' | 'horizontal' | 'radial' | 'force';
 
 interface GraphToolbarProps {
     totalFiles: number;
@@ -13,7 +15,16 @@ interface GraphToolbarProps {
     activeFilter: string | null;
     isHeatmap: boolean;
     onToggleHeatmap: (val: boolean) => void;
+    layoutMode: LayoutMode;
+    onLayoutChange: (mode: LayoutMode) => void;
 }
+
+const LAYOUT_OPTIONS: { id: LayoutMode; label: string; description: string; icon: typeof ArrowDown }[] = [
+    { id: 'hierarchical', label: 'Hierarchical', description: 'Top-to-bottom tree', icon: ArrowDown },
+    { id: 'horizontal', label: 'Horizontal Flow', description: 'Left-to-right flow', icon: ArrowRight },
+    { id: 'radial', label: 'Radial', description: 'Concentric rings', icon: Circle },
+    { id: 'force', label: 'Force-Directed', description: 'Organic clusters', icon: Waypoints },
+];
 
 const NODE_TYPES = ['entry', 'component', 'utility', 'module', 'config', 'other'];
 
@@ -36,9 +47,12 @@ export default function GraphToolbar({
     activeFilter,
     isHeatmap,
     onToggleHeatmap,
+    layoutMode,
+    onLayoutChange,
 }: GraphToolbarProps) {
     const [searchText, setSearchText] = useState('');
     const [filterOpen, setFilterOpen] = useState(false);
+    const [layoutOpen, setLayoutOpen] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => onSearch(searchText), 200);
@@ -101,7 +115,6 @@ export default function GraphToolbar({
                     )}
                 </div>
 
-                {/* Heatmap Toggle */}
                 <button
                     onClick={() => onToggleHeatmap(!isHeatmap)}
                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${isHeatmap
@@ -113,6 +126,64 @@ export default function GraphToolbar({
                     <Flame size={13} className={isHeatmap ? 'animate-pulse' : ''} />
                     <span className="hidden sm:inline">Heatmap</span>
                 </button>
+
+                {/* Graph View Dropdown */}
+                <div className="relative">
+                    <button
+                        onClick={() => { setLayoutOpen(!layoutOpen); setFilterOpen(false); }}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${layoutOpen
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-white/[0.04] text-gray-400 border border-white/[0.06] hover:bg-white/[0.08]'
+                            }`}
+                        title="Change Graph Layout"
+                    >
+                        <LayoutGrid size={13} />
+                        <span className="hidden sm:inline">Graph View</span>
+                        <ChevronDown size={10} className={`transition-transform duration-200 ${layoutOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {layoutOpen && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setLayoutOpen(false)} />
+                            <div
+                                className="absolute top-full right-0 mt-1.5 rounded-xl py-1.5 min-w-[200px] z-50"
+                                style={{
+                                    background: 'rgba(13,13,13,0.97)',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+                                }}
+                            >
+                                <div className="px-3 py-1.5 mb-1 border-b border-white/5">
+                                    <span className="text-[9px] text-gray-500 font-mono uppercase tracking-wider">Layout Mode</span>
+                                </div>
+                                {LAYOUT_OPTIONS.map((opt) => {
+                                    const Icon = opt.icon;
+                                    const isActive = layoutMode === opt.id;
+                                    return (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => { onLayoutChange(opt.id); setLayoutOpen(false); }}
+                                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all hover:bg-white/5 ${isActive ? 'bg-emerald-500/10' : ''
+                                                }`}
+                                        >
+                                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center border ${isActive
+                                                    ? 'bg-emerald-500/20 border-emerald-500/30'
+                                                    : 'bg-white/[0.03] border-white/[0.06]'
+                                                }`}>
+                                                <Icon size={13} className={isActive ? 'text-emerald-400' : 'text-gray-400'} />
+                                            </div>
+                                            <div>
+                                                <div className={`text-[11px] font-medium ${isActive ? 'text-emerald-400' : 'text-gray-300'}`}>
+                                                    {opt.label}
+                                                </div>
+                                                <div className="text-[9px] text-gray-500">{opt.description}</div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
+                </div>
 
                 {/* Filter — desktop inline */}
                 <div className="hidden md:flex items-center gap-1 pl-2 border-l border-white/5">

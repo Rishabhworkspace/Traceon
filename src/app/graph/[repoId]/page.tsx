@@ -96,11 +96,9 @@ function getPackageColor(
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 60;
 
-function getLayoutedElements(
-    nodes: Node[],
-    edges: Edge[],
-    direction = 'TB'
-) {
+type LayoutMode = 'hierarchical' | 'horizontal' | 'radial' | 'force';
+
+function layoutDagre(nodes: Node[], edges: Edge[], direction: string) {
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({ rankdir: direction, nodesep: 60, ranksep: 80 });
@@ -108,24 +106,184 @@ function getLayoutedElements(
     nodes.forEach((node) => {
         dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
     });
-
     edges.forEach((edge) => {
         dagreGraph.setEdge(edge.source, edge.target);
     });
-
     dagre.layout(dagreGraph);
 
-    const layoutedNodes = nodes.map((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
+    return nodes.map((node) => {
+        const pos = dagreGraph.node(node.id);
+        return { ...node, position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - NODE_HEIGHT / 2 } };
+    });
+}
+
+function layoutRadial(nodes: Node[], edges: Edge[]) {
+    if (nodes.length === 0) return nodes;
+
+    // Build adjacency for BFS
+    const inDeg = new Map<string, number>();
+    const adj = new Map<string, string[]>();
+    nodes.forEach(n => { inDeg.set(n.id, 0); adj.set(n.id, []); });
+    edges.forEach(e => {
+        inDeg.set(e.target, (inDeg.get(e.target) || 0) + 1);
+        adj.get(e.source)?.push(e.target);
+    });
+
+    // BFS from entry nodes (inDegree === 0)
+    const depth = new Map<string, number>();
+    const queue: string[] = [];
+    nodes.forEach(n => {
+        if ((inDeg.get(n.id) || 0) === 0) {
+            depth.set(n.id, 0);
+            queue.push(n.id);
+        }
+    });
+    // If no roots found, use all nodes as root
+    if (queue.length === 0) {
+        nodes.forEach(n => { depth.set(n.id, 0); queue.push(n.id); });
+    }
+
+    let head = 0;
+    while (head < queue.length) {
+        const curr = queue[head++];
+        const d = depth.get(curr)!;
+        for (const next of (adj.get(curr) || [])) {
+            if (!depth.has(next)) {
+                depth.set(next, d + 1);
+                queue.push(next);
+            }
+        }
+    }
+    // Assign depth 0 to any unvisited nodes
+    nodes.forEach(n => { if (!depth.has(n.id)) depth.set(n.id, 0); });
+
+    // Group by depth
+    const rings = new Map<number, Node[]>();
+    nodes.forEach(n => {
+        const d = depth.get(n.id)!;
+        if (!rings.has(d)) rings.set(d, []);
+        rings.get(d)!.push(n);
+    });
+
+    const RING_SPACING = 280;
+    const centerX = 0;
+    const centerY = 0;
+
+    return nodes.map(node => {
+        const d = depth.get(node.id)!;
+        const ring = rings.get(d)!;
+        const idx = ring.indexOf(node);
+        const count = ring.length;
+
+        if (d === 0 && count === 1) {
+            return { ...node, position: { x: centerX, y: centerY } };
+        }
+
+        const radius = (d + 1) * RING_SPACING;
+        const angleStep = (2 * Math.PI) / count;
+        const angle = idx * angleStep - Math.PI / 2;
+
         return {
             ...node,
             position: {
-                x: nodeWithPosition.x - NODE_WIDTH / 2,
-                y: nodeWithPosition.y - NODE_HEIGHT / 2,
+                x: centerX + radius * Math.cos(angle) - NODE_WIDTH / 2,
+                y: centerY + radius * Math.sin(angle) - NODE_HEIGHT / 2,
             },
         };
     });
+}
 
+function layoutForce(nodes: Node[], edges: Edge[]) {
+    if (nodes.length === 0) return nodes;
+
+    // Initialize positions in a grid to avoid overlap
+    const cols = Math.ceil(Math.sqrt(nodes.length));
+    const positions = new Map<string, { x: number; y: number }>();
+    nodes.forEach((n, i) => {
+        positions.set(n.id, {
+            x: (i % cols) * 250,
+            y: Math.floor(i / cols) * 200,
+        });
+    });
+
+    const ITERATIONS = 80;
+    const REPULSION = 80000;
+    const ATTRACTION = 0.005;
+    const DAMPING = 0.9;
+    const velocities = new Map<string, { vx: number; vy: number }>();
+    nodes.forEach(n => velocities.set(n.id, { vx: 0, vy: 0 }));
+
+    for (let iter = 0; iter < ITERATIONS; iter++) {
+        const temp = 1 - iter / ITERATIONS; // cooling
+
+        // Repulsion between all pairs
+        for (let i = 0; i < nodes.length; i++) {
+            const a = positions.get(nodes[i].id)!;
+            const va = velocities.get(nodes[i].id)!;
+            for (let j = i + 1; j < nodes.length; j++) {
+                const b = positions.get(nodes[j].id)!;
+                const vb = velocities.get(nodes[j].id)!;
+                let dx = a.x - b.x;
+                let dy = a.y - b.y;
+                const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+                const force = REPULSION / (dist * dist);
+                dx = (dx / dist) * force * temp;
+                dy = (dy / dist) * force * temp;
+                va.vx += dx; va.vy += dy;
+                vb.vx -= dx; vb.vy -= dy;
+            }
+        }
+
+        // Attraction along edges
+        edges.forEach(edge => {
+            const a = positions.get(edge.source);
+            const b = positions.get(edge.target);
+            if (!a || !b) return;
+            const va = velocities.get(edge.source)!;
+            const vb = velocities.get(edge.target)!;
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const force = ATTRACTION * temp;
+            va.vx += dx * force; va.vy += dy * force;
+            vb.vx -= dx * force; vb.vy -= dy * force;
+        });
+
+        // Apply velocities with damping
+        nodes.forEach(n => {
+            const p = positions.get(n.id)!;
+            const v = velocities.get(n.id)!;
+            v.vx *= DAMPING; v.vy *= DAMPING;
+            p.x += v.vx; p.y += v.vy;
+        });
+    }
+
+    return nodes.map(node => {
+        const p = positions.get(node.id)!;
+        return { ...node, position: { x: p.x - NODE_WIDTH / 2, y: p.y - NODE_HEIGHT / 2 } };
+    });
+}
+
+function getLayoutedElements(
+    nodes: Node[],
+    edges: Edge[],
+    mode: LayoutMode = 'hierarchical'
+) {
+    let layoutedNodes: Node[];
+    switch (mode) {
+        case 'horizontal':
+            layoutedNodes = layoutDagre(nodes, edges, 'LR');
+            break;
+        case 'radial':
+            layoutedNodes = layoutRadial(nodes, edges);
+            break;
+        case 'force':
+            layoutedNodes = layoutForce(nodes, edges);
+            break;
+        case 'hierarchical':
+        default:
+            layoutedNodes = layoutDagre(nodes, edges, 'TB');
+            break;
+    }
     return { nodes: layoutedNodes, edges };
 }
 
@@ -156,6 +314,7 @@ export default function GraphPage() {
     const [workspaceOpen, setWorkspaceOpen] = useState(false);
     const [packageFilter, setPackageFilter] = useState<string | null>(null);
     const [diffStats, setDiffStats] = useState<{ nodesAdded: number; nodesRemoved: number; edgesAdded: number; edgesRemoved: number } | null>(null);
+    const [layoutMode, setLayoutMode] = useState<LayoutMode>('hierarchical');
 
     // Fetch graph data
     useEffect(() => {
@@ -326,13 +485,13 @@ export default function GraphPage() {
             setDiffStats({ nodesAdded: addedNodes, nodesRemoved: deletedNodes, edgesAdded: addedEdges, edgesRemoved: deletedEdges });
         }
 
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges);
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges, layoutMode);
 
         setRawNodes(rfNodes.map(n => ({ id: n.id, label: n.data.label as string, type: n.data.nodeType as string, path: n.data.filePath as string, imports: [], exports: [], loc: n.data.loc as number, inDegree: n.data.inDegree as number, outDegree: n.data.outDegree as number })));
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
 
-    }, [activeHistoryIndex, history, metrics, setNodes, setEdges]);
+    }, [activeHistoryIndex, history, metrics, layoutMode, setNodes, setEdges]);
 
     // Keep a ref to edges for hover lookups (avoids infinite loop)
     const edgesRef = useRef<Edge[]>([]);
@@ -525,6 +684,8 @@ export default function GraphPage() {
                     activeFilter={filterType}
                     isHeatmap={isHeatmap}
                     onToggleHeatmap={setIsHeatmap}
+                    layoutMode={layoutMode}
+                    onLayoutChange={setLayoutMode}
                 />
             )}
 
