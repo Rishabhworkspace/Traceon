@@ -15,7 +15,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, FileText, Wrench } from 'lucide-react';
 
 import CustomNode from '@/components/graph/CustomNode';
 import CustomEdge from '@/components/graph/CustomEdge';
@@ -24,6 +24,8 @@ import GraphLegend from '@/components/graph/GraphLegend';
 import GraphToolbar from '@/components/graph/GraphToolbar';
 import ImpactPanel from '@/components/graph/ImpactPanel';
 import AIChatPanel from '@/components/graph/AIChatPanel';
+import ArchitecturePanel from '@/components/graph/ArchitecturePanel';
+import RefactoringPanel from '@/components/graph/RefactoringPanel';
 import TimelineSlider from '@/components/graph/TimelineSlider';
 
 interface APIGraphNode {
@@ -123,6 +125,8 @@ export default function GraphPage() {
     const [filterType, setFilterType] = useState<string | null>(null);
     const [isHeatmap, setIsHeatmap] = useState(false);
     const [impactOpen, setImpactOpen] = useState(false);
+    const [archOpen, setArchOpen] = useState(false);
+    const [refactorOpen, setRefactorOpen] = useState(false);
 
     // Fetch graph data
     useEffect(() => {
@@ -402,6 +406,16 @@ export default function GraphPage() {
         );
     }, [setNodes]);
 
+    // Locate a specific node on the graph (used by refactoring panel)
+    const handleLocateNode = useCallback((nodeId: string) => {
+        setNodes((nds) =>
+            nds.map((n) => ({
+                ...n,
+                data: { ...n.data, isHighlighted: n.id === nodeId },
+            }))
+        );
+    }, [setNodes]);
+
     if (loading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: '#080808' }}>
@@ -435,6 +449,28 @@ export default function GraphPage() {
                 <ArrowLeft size={14} />
                 Dashboard
             </button>
+
+            {/* Phase 2 Action Buttons */}
+            <div className="absolute top-5 left-40 z-30 flex items-center gap-2">
+                <button
+                    onClick={() => { setArchOpen(v => !v); setRefactorOpen(false); }}
+                    className={`flex items-center gap-2 text-xs transition-colors bg-black/60 backdrop-blur-sm border rounded-lg px-3 py-2 ${archOpen ? 'text-blue-400 border-blue-500/30 bg-blue-500/10' : 'text-gray-400 hover:text-white border-white/[0.06]'
+                        }`}
+                    title="Architecture Summary"
+                >
+                    <FileText size={14} />
+                    Architecture
+                </button>
+                <button
+                    onClick={() => { setRefactorOpen(v => !v); setArchOpen(false); }}
+                    className={`flex items-center gap-2 text-xs transition-colors bg-black/60 backdrop-blur-sm border rounded-lg px-3 py-2 ${refactorOpen ? 'text-orange-400 border-orange-500/30 bg-orange-500/10' : 'text-gray-400 hover:text-white border-white/[0.06]'
+                        }`}
+                    title="Refactoring Suggestions"
+                >
+                    <Wrench size={14} />
+                    Refactor
+                </button>
+            </div>
 
             {/* Toolbar */}
             {metrics && (
@@ -507,6 +543,21 @@ export default function GraphPage() {
                 onClearHighlight={handleClearImpactHighlight}
                 isOpen={impactOpen}
                 onToggle={() => setImpactOpen((v) => !v)}
+            />
+
+            {/* Architecture Summary Panel */}
+            <ArchitecturePanel
+                repoId={repoId}
+                isOpen={archOpen}
+                onToggle={() => setArchOpen(false)}
+            />
+
+            {/* Refactoring Suggestions Panel */}
+            <RefactoringPanel
+                repoId={repoId}
+                isOpen={refactorOpen}
+                onToggle={() => setRefactorOpen(false)}
+                onHighlightNode={handleLocateNode}
             />
 
             {/* File Inspector (hidden when impact panel is open) */}
