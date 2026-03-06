@@ -15,7 +15,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
-import { Loader2, ArrowLeft, FileText, Wrench } from 'lucide-react';
+import { Loader2, ArrowLeft, FileText, Wrench, Boxes } from 'lucide-react';
 
 import CustomNode from '@/components/graph/CustomNode';
 import CustomEdge from '@/components/graph/CustomEdge';
@@ -26,6 +26,7 @@ import ImpactPanel from '@/components/graph/ImpactPanel';
 import AIChatPanel from '@/components/graph/AIChatPanel';
 import ArchitecturePanel from '@/components/graph/ArchitecturePanel';
 import RefactoringPanel from '@/components/graph/RefactoringPanel';
+import WorkspacePanel from '@/components/graph/WorkspacePanel';
 import TimelineSlider from '@/components/graph/TimelineSlider';
 
 interface APIGraphNode {
@@ -38,6 +39,7 @@ interface APIGraphNode {
     loc: number;
     inDegree: number;
     outDegree: number;
+    packageName?: string;
 }
 
 interface APIGraphEdge {
@@ -47,6 +49,12 @@ interface APIGraphEdge {
     weight: number;
 }
 
+interface APIWorkspaceInfo {
+    type: string;
+    packages: Array<{ name: string; path: string; version?: string; dependencies: string[] }>;
+    rootName?: string;
+}
+
 interface APIMetrics {
     totalFiles: number;
     totalDependencies: number;
@@ -54,18 +62,35 @@ interface APIMetrics {
     criticalModules: string[];
     circularDependencies: string[][];
     fileTypeDistribution: Record<string, number>;
+    workspaceInfo?: APIWorkspaceInfo;
 }
 
 interface APIHistorySnapshot {
     commitHash: string;
     message: string;
     date: string;
+    author?: string;
     nodes: APIGraphNode[];
     edges: APIGraphEdge[];
 }
 
 const nodeTypes = { custom: CustomNode };
 const edgeTypes = { custom: CustomEdge };
+
+const PACKAGE_PALETTE = [
+    '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444',
+    '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#6366f1',
+];
+
+function getPackageColor(
+    packageName: string | undefined,
+    workspaceInfo: APIWorkspaceInfo | undefined
+): string | undefined {
+    if (!packageName || !workspaceInfo) return undefined;
+    const idx = workspaceInfo.packages.findIndex(p => p.name === packageName);
+    if (idx === -1) return '#64748b';
+    return PACKAGE_PALETTE[idx % PACKAGE_PALETTE.length];
+}
 
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 60;
@@ -127,6 +152,9 @@ export default function GraphPage() {
     const [impactOpen, setImpactOpen] = useState(false);
     const [archOpen, setArchOpen] = useState(false);
     const [refactorOpen, setRefactorOpen] = useState(false);
+    const [workspaceOpen, setWorkspaceOpen] = useState(false);
+    const [packageFilter, setPackageFilter] = useState<string | null>(null);
+    const [diffStats, setDiffStats] = useState<{ nodesAdded: number; nodesRemoved: number; edgesAdded: number; edgesRemoved: number } | null>(null);
 
     // Fetch graph data
     useEffect(() => {
@@ -193,7 +221,9 @@ export default function GraphPage() {
                     isHighlighted: false,
                     isHeatmap: false,
                     filePath: n.path,
-                    diffStatus: 'unchanged'
+                    diffStatus: 'unchanged',
+                    packageName: n.packageName,
+                    packageColor: getPackageColor(n.packageName, metrics?.workspaceInfo),
                 },
             }));
 
@@ -205,6 +235,8 @@ export default function GraphPage() {
                 data: { isHighlighted: false, diffStatus: 'unchanged' },
                 animated: false,
             }));
+
+            setDiffStats(null);
         } else {
             // Diff against older commit
             const baseEdgeSet = new Set(prevSnapshot.edges.map((e: APIGraphEdge) => `${e.source}->${e.target}`));
@@ -284,6 +316,13 @@ export default function GraphPage() {
                     });
                 }
             }
+
+            // Compute diff stats
+            const addedNodes = rfNodes.filter(n => n.data.diffStatus === 'added').length;
+            const deletedNodes = rfNodes.filter(n => n.data.diffStatus === 'deleted').length;
+            const addedEdges = rfEdges.filter(e => e.data?.diffStatus === 'added').length;
+            const deletedEdges = rfEdges.filter(e => e.data?.diffStatus === 'deleted').length;
+            setDiffStats({ nodesAdded: addedNodes, nodesRemoved: deletedNodes, edgesAdded: addedEdges, edgesRemoved: deletedEdges });
         }
 
         const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges);
@@ -441,35 +480,46 @@ export default function GraphPage() {
 
     return (
         <div className="w-full h-[calc(100vh-3.5rem)] relative overflow-hidden" style={{ background: '#080808' }}>
-            {/* Back button */}
-            <button
-                onClick={() => router.push('/dashboard')}
-                className="absolute top-5 left-5 z-30 flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors bg-black/60 backdrop-blur-sm border border-white/[0.06] rounded-lg px-3 py-2"
-            >
-                <ArrowLeft size={14} />
-                Dashboard
-            </button>
+            {/* Top-Left Action Stack */}
+            <div className="absolute top-5 left-5 z-40 flex flex-col gap-3">
+                {/* Back button */}
+                <button
+                    onClick={() => router.push('/dashboard')}
+                    className="flex items-center w-fit gap-2 text-xs text-gray-400 hover:text-white transition-colors bg-black/60 backdrop-blur-sm border border-white/[0.06] rounded-lg px-3 py-2"
+                >
+                    <ArrowLeft size={14} />
+                    Dashboard
+                </button>
 
-            {/* Phase 2 Action Buttons */}
-            <div className="absolute top-5 left-40 z-30 flex items-center gap-2">
-                <button
-                    onClick={() => { setArchOpen(v => !v); setRefactorOpen(false); }}
-                    className={`flex items-center gap-2 text-xs transition-colors bg-black/60 backdrop-blur-sm border rounded-lg px-3 py-2 ${archOpen ? 'text-blue-400 border-blue-500/30 bg-blue-500/10' : 'text-gray-400 hover:text-white border-white/[0.06]'
-                        }`}
-                    title="Architecture Summary"
-                >
-                    <FileText size={14} />
-                    Architecture
-                </button>
-                <button
-                    onClick={() => { setRefactorOpen(v => !v); setArchOpen(false); }}
-                    className={`flex items-center gap-2 text-xs transition-colors bg-black/60 backdrop-blur-sm border rounded-lg px-3 py-2 ${refactorOpen ? 'text-orange-400 border-orange-500/30 bg-orange-500/10' : 'text-gray-400 hover:text-white border-white/[0.06]'
-                        }`}
-                    title="Refactoring Suggestions"
-                >
-                    <Wrench size={14} />
-                    Refactor
-                </button>
+                {/* Phase 2 Action Buttons Stack */}
+                <div className="flex flex-col gap-2 w-fit">
+                    <button
+                        onClick={() => { setArchOpen(v => !v); setRefactorOpen(false); setWorkspaceOpen(false); }}
+                        className={`flex items-center justify-start gap-2 w-full text-xs transition-colors bg-black/60 backdrop-blur-sm border rounded-lg px-3 py-2 ${archOpen ? 'text-blue-400 border-blue-500/30 bg-blue-500/10' : 'text-gray-400 hover:text-white border-white/[0.06]'}`}
+                        title="Architecture Summary"
+                    >
+                        <FileText size={14} />
+                        Architecture
+                    </button>
+                    <button
+                        onClick={() => { setRefactorOpen(v => !v); setArchOpen(false); setWorkspaceOpen(false); }}
+                        className={`flex items-center justify-start gap-2 w-full text-xs transition-colors bg-black/60 backdrop-blur-sm border rounded-lg px-3 py-2 ${refactorOpen ? 'text-orange-400 border-orange-500/30 bg-orange-500/10' : 'text-gray-400 hover:text-white border-white/[0.06]'}`}
+                        title="Refactoring Suggestions"
+                    >
+                        <Wrench size={14} />
+                        Refactor
+                    </button>
+                    {metrics?.workspaceInfo && metrics.workspaceInfo.type !== 'none' && (
+                        <button
+                            onClick={() => { setWorkspaceOpen(v => !v); setArchOpen(false); setRefactorOpen(false); }}
+                            className={`flex items-center justify-start gap-2 w-full text-xs transition-colors bg-black/60 backdrop-blur-sm border rounded-lg px-3 py-2 ${workspaceOpen ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : 'text-gray-400 hover:text-white border-white/[0.06]'}`}
+                            title="Workspace / Monorepo"
+                        >
+                            <Boxes size={14} />
+                            Workspace
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Toolbar */}
@@ -560,26 +610,39 @@ export default function GraphPage() {
                 onHighlightNode={handleLocateNode}
             />
 
+            {/* Workspace Panel (Monorepo) */}
+            <WorkspacePanel
+                workspaceInfo={metrics?.workspaceInfo || null}
+                nodes={rawNodes.map(n => ({ id: n.id, path: n.path, packageName: n.packageName }))}
+                edges={history?.[activeHistoryIndex ?? 0]?.edges.map(e => ({ source: e.source, target: e.target })) || []}
+                isOpen={workspaceOpen}
+                onToggle={() => setWorkspaceOpen(false)}
+                onFilterPackage={setPackageFilter}
+            />
+
             {/* File Inspector (hidden when impact panel is open) */}
-            {!impactOpen && (
-                <FileInspector
-                    node={selectedNode}
-                    isCritical={isCritical}
-                    onClose={() => setSelectedNode(null)}
-                />
-            )}
+            {
+                !impactOpen && (
+                    <FileInspector
+                        node={selectedNode}
+                        isCritical={isCritical}
+                        onClose={() => setSelectedNode(null)}
+                    />
+                )
+            }
 
             {/* Timeline Slider */}
             {activeHistoryIndex !== null && history && history.length > 1 && (
                 <TimelineSlider
-                    commits={history.map(h => ({ sha: h.commitHash, message: h.message, date: h.date }))}
+                    commits={history.map(h => ({ sha: h.commitHash, message: h.message, date: h.date, author: h.author }))}
                     selectedIndex={activeHistoryIndex}
                     onChange={setActiveHistoryIndex}
+                    diffStats={diffStats}
                 />
             )}
 
             {/* AI Chat Panel */}
             <AIChatPanel repoId={repoId} />
-        </div>
+        </div >
     );
 }
