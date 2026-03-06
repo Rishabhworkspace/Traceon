@@ -15,7 +15,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
-import { Loader2, ArrowLeft, FileText, Wrench, Boxes } from 'lucide-react';
+import { Loader2, ArrowLeft, FileText, Wrench, Boxes, TrendingUp } from 'lucide-react';
 
 import CustomNode from '@/components/graph/CustomNode';
 import CustomEdge from '@/components/graph/CustomEdge';
@@ -28,6 +28,7 @@ import ArchitecturePanel from '@/components/graph/ArchitecturePanel';
 import RefactoringPanel from '@/components/graph/RefactoringPanel';
 import WorkspacePanel from '@/components/graph/WorkspacePanel';
 import TimelineSlider from '@/components/graph/TimelineSlider';
+import ExportMenu from '@/components/graph/ExportMenu';
 
 interface APIGraphNode {
     id: string;
@@ -481,17 +482,7 @@ export default function GraphPage() {
     return (
         <div className="w-full h-[calc(100vh-3.5rem)] relative overflow-hidden" style={{ background: '#080808' }}>
             {/* Top-Left Action Stack */}
-            <div className="absolute top-5 left-5 z-40 flex flex-col gap-3">
-                {/* Back button */}
-                <button
-                    onClick={() => router.push('/dashboard')}
-                    className="flex items-center w-fit gap-2 text-xs text-gray-400 hover:text-white transition-colors bg-black/60 backdrop-blur-sm border border-white/[0.06] rounded-lg px-3 py-2"
-                >
-                    <ArrowLeft size={14} />
-                    Dashboard
-                </button>
-
-                {/* Phase 2 Action Buttons Stack */}
+            <div className="absolute top-5 left-5 z-40 flex flex-col gap-3">                {/* Phase 2 Action Buttons Stack */}
                 <div className="flex flex-col gap-2 w-fit">
                     <button
                         onClick={() => { setArchOpen(v => !v); setRefactorOpen(false); setWorkspaceOpen(false); }}
@@ -536,6 +527,26 @@ export default function GraphPage() {
                     onToggleHeatmap={setIsHeatmap}
                 />
             )}
+
+            {/* Top-Right Action Stack */}
+            <div className="absolute top-5 right-5 z-40 flex items-center gap-3">
+                {!impactOpen && (
+                    <button
+                        onClick={() => setImpactOpen(true)}
+                        className="flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg transition-all hover:scale-105"
+                        style={{
+                            background: 'rgba(13,13,13,0.9)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            color: '#94a3b8',
+                            backdropFilter: 'blur(12px)',
+                        }}
+                    >
+                        <TrendingUp size={14} />
+                        Impact Analysis
+                    </button>
+                )}
+                <ExportMenu repoId={repoId} />
+            </div>
 
             {/* React Flow Canvas */}
             <ReactFlow
@@ -632,7 +643,7 @@ export default function GraphPage() {
             }
 
             {/* Timeline Slider */}
-            {activeHistoryIndex !== null && history && history.length > 1 && (
+            {activeHistoryIndex !== null && history && history.length > 0 && (
                 <TimelineSlider
                     commits={history.map(h => ({ sha: h.commitHash, message: h.message, date: h.date, author: h.author }))}
                     selectedIndex={activeHistoryIndex}

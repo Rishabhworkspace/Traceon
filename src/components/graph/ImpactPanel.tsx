@@ -105,21 +105,7 @@ export default function ImpactPanel({
     }, [selectedNodeId, isOpen, fetchNodeImpact]);
 
     if (!isOpen) {
-        return (
-            <button
-                onClick={onToggle}
-                className="absolute top-5 right-5 z-30 flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg transition-all hover:scale-105"
-                style={{
-                    background: 'rgba(13,13,13,0.9)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    color: '#94a3b8',
-                    backdropFilter: 'blur(12px)',
-                }}
-            >
-                <TrendingUp size={14} />
-                Impact Analysis
-            </button>
-        );
+        return null;
     }
 
     const riskConfig = nodeImpact ? RISK_CONFIG[nodeImpact.riskLevel] : null;

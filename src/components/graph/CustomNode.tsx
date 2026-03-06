@@ -24,6 +24,8 @@ interface CustomNodeData {
     isHeatmap?: boolean;
     diffStatus?: 'added' | 'deleted' | 'unchanged';
     filePath: string;
+    packageName?: string;
+    packageColor?: string;
     [key: string]: unknown;
 }
 
@@ -121,6 +123,18 @@ function CustomNode({ data, selected }: { data: CustomNodeData; selected?: boole
                 <span>↓{data.inDegree}</span>
                 <span>↑{data.outDegree}</span>
             </div>
+
+            {data.packageName && (
+                <div className="flex items-center gap-1.5 mt-1.5">
+                    <div
+                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ background: data.packageColor || '#64748b' }}
+                    />
+                    <span className="text-[8px] font-mono truncate" style={{ color: '#94a3b8', maxWidth: '150px' }}>
+                        {data.packageName}
+                    </span>
+                </div>
+            )}
 
             {isCritical && (
                 <div
