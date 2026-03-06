@@ -55,7 +55,7 @@ export function resolveImportPath(
     importerPath: string,
     rawImport: string,
     existingFiles: Map<string, IFile>,
-    pathsMatcher?: ((id: string) => string[]) | null,
+    pathsMatcher?: ((id: string, basePath?: string) => string[] | null) | null,
     repoPath?: string
 ): string | null {
     // Return null if obvious external library (e.g. 'react', 'lodash')
@@ -77,7 +77,8 @@ export function resolveImportPath(
     let wasResolvedByTsConfig = false;
     if (pathsMatcher && repoPath) {
         // Try passing the raw import through the alias matcher
-        const tsconfigMatches = pathsMatcher(rawImport);
+        const absoluteImporterPath = path.join(repoPath, importerPath);
+        const tsconfigMatches = pathsMatcher(rawImport, absoluteImporterPath);
         if (tsconfigMatches && tsconfigMatches.length > 0) {
             // tsconfigMatches returns ABSOLUTE paths on the disk based on the tsconfig location.
             // Our "existingFiles" holds RELATIVE paths from the repo root.
@@ -150,13 +151,25 @@ export function resolveImportPath(
             ? cleanImport.substring(2)
             : cleanImport;
 
-        // Look for the end of the paths
-        for (const [existingPath] of existingFiles.entries()) {
-            // Strip extension from existing path for matching
-            const existingNoExt = existingPath.replace(/\.[^/.]+$/, "");
+        // Skip fuzzy matching for obvious external libraries (no path separators) unless it's a known internal alias
+        const isExternalLike = !rawImport.startsWith('.') && !rawImport.startsWith('/') && !rawImport.startsWith('@/') && !rawImport.startsWith('~/');
+        const hasPathChars = fuzzyTarget.includes('/');
 
-            if (existingNoExt.endsWith(fuzzyTarget) || existingPath.endsWith(fuzzyTarget)) {
-                return existingPath;
+        if (!isExternalLike || hasPathChars) {
+            // Look for the end of the paths
+            for (const [existingPath] of existingFiles.entries()) {
+                // Strip extension from existing path for matching
+                const existingNoExt = existingPath.replace(/\.[^/.]+$/, "");
+
+                // Ensure strict suffix matching by checking if next char to the left is a slash
+                if (
+                    existingNoExt === fuzzyTarget ||
+                    existingPath === fuzzyTarget ||
+                    existingNoExt.endsWith(`/${fuzzyTarget}`) ||
+                    existingPath.endsWith(`/${fuzzyTarget}`)
+                ) {
+                    return existingPath;
+                }
             }
         }
     }
@@ -166,7 +179,7 @@ export function resolveImportPath(
 
 export function calculateGraph(
     files: IFile[],
-    pathsMatcher?: ((id: string) => string[]) | null,
+    pathsMatcher?: ((id: string, basePath?: string) => string[] | null) | null,
     repoPath?: string
 ) {
     const existingMap = new Map<string, IFile>();

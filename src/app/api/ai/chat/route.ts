@@ -1,25 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { createAnthropic } from '@ai-sdk/anthropic';
 import connectDB from '@/lib/db/connection';
 import AnalysisResult from '@/lib/db/models/AnalysisResult';
 
-// Setup providers with error handling if keys are missing
-// The user will add these keys to their .env file later
-const openai = createOpenAI({
-    apiKey: process.env.OPENAI_API_KEY || 'MISSING_KEY',
-});
-
-const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || 'MISSING_KEY',
-});
-
-const anthropic = createAnthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY || 'MISSING_KEY',
-});
-
+// Active providers — only Groq and Cerebras are in use
 const cerebras = createOpenAI({
     baseURL: 'https://api.cerebras.ai/v1',
     apiKey: process.env.CEREBRAS_API_KEY || 'MISSING_KEY',
@@ -60,35 +45,18 @@ export async function POST(req: NextRequest) {
 
         try {
             switch (model) {
-                case 'gpt-4o':
-                    if (process.env.OPENAI_API_KEY) {
-                        selectedLanguageModel = openai('gpt-4o');
-                    }
-                    break;
-                case 'gemini-1.5-pro':
-                    if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-                        selectedLanguageModel = google('gemini-1.5-pro-latest'); // Or standard gemini-1.5-pro
-                    }
-                    break;
-                case 'claude-3-5-sonnet-20241022':
-                    if (process.env.ANTHROPIC_API_KEY) {
-                        selectedLanguageModel = anthropic('claude-3-5-sonnet-20241022');
-                    }
-                    break;
-                case 'gpt-oss-120b':
                 case 'llama3.1-8b':
                     if (process.env.CEREBRAS_API_KEY) {
-                        selectedLanguageModel = cerebras(model);
+                        selectedLanguageModel = cerebras('llama3.1-8b');
                     }
                     break;
                 case 'llama-3.3-70b-versatile':
-                case 'llama-3.1-8b-instant':
                     if (process.env.GROQ_API_KEY) {
-                        selectedLanguageModel = groq(model);
+                        selectedLanguageModel = groq('llama-3.3-70b-versatile');
                     }
                     break;
                 default:
-                    // Fallback to whatever is available or just fail gracefully below
+                    // Unknown model, fall through to missing key error
                     break;
             }
         } catch (e) {
@@ -96,12 +64,12 @@ export async function POST(req: NextRequest) {
         }
 
         if (!selectedLanguageModel) {
-            // Mock response if API key isn't provided yet
-            const missingKeyProvider = model.split('-')[0].toUpperCase();
+            const providerName = model === 'llama3.1-8b' ? 'CEREBRAS' : 'GROQ';
+            const envKey = model === 'llama3.1-8b' ? 'CEREBRAS_API_KEY' : 'GROQ_API_KEY';
             return new NextResponse(
                 JSON.stringify({
-                    error: `API Key for ${missingKeyProvider} is not configured yet. Please add it to your .env file to use this model.`,
-                    message: "The developer has requested API keys to be added later. Returning mock response."
+                    error: `API Key for ${providerName} is not configured. Add ${envKey} to your .env.local file, then restart the dev server.`,
+                    message: "Model is not available without the required API key."
                 }),
                 {
                     status: 400,
@@ -126,7 +94,7 @@ export async function POST(req: NextRequest) {
         const errMsg = error instanceof Error ? error.message : 'Unknown error occurred';
         if (errMsg.includes('api_key') || errMsg.includes('API key')) {
             return new NextResponse(
-                JSON.stringify({ error: 'API key is missing or invalid for the selected model. Add it to .env.' }),
+                JSON.stringify({ error: 'API key is missing or invalid for the selected model. Add it to .env.local.' }),
                 { status: 401 }
             );
         }

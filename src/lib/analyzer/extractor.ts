@@ -6,11 +6,26 @@ import fs from 'node:fs/promises';
 import { IFile } from '@/lib/db/models/File';
 import { getTsconfig, createPathsMatcher } from 'get-tsconfig';
 
+// Cache matchers by tsconfig path
+function getMatcherForFile(filePath: string, matcherCache: Map<string, ((id: string) => string[]) | null>) {
+    try {
+        const tsconfig = getTsconfig(path.dirname(filePath), 'tsconfig.json');
+        if (!tsconfig) return null;
+
+        if (matcherCache.has(tsconfig.path)) {
+            return matcherCache.get(tsconfig.path);
+        }
+        const matcher = createPathsMatcher(tsconfig);
+        matcherCache.set(tsconfig.path, matcher);
+        return matcher;
+    } catch (e) {
+        console.warn(`[Traceon] Failed to load tsconfig near ${filePath}:`, e instanceof Error ? e.message : e);
+        return null;
+    }
+}
+
 export async function extractGraphData(repoId: string, repoPath: string) {
     const scannedFiles = await scanDirectory(repoPath);
-
-    const tsconfig = getTsconfig(repoPath);
-    const pathsMatcher = tsconfig ? createPathsMatcher(tsconfig) : null;
 
     const PARSING_EXTENSIONS = new Set(['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.vue', '.svelte', '.html', '.css', '.scss', '.astro']);
 
@@ -34,7 +49,7 @@ export async function extractGraphData(repoId: string, repoPath: string) {
                 extension: file.extension,
                 type: 'file',
                 loc: parsed.loc,
-                imports: parsed.imports,
+                imports: parsed.imports, // We keep the raw imports and resolve later in calculateGraph
                 exports: parsed.exports,
                 functions: parsed.functions,
                 classes: parsed.classes,
@@ -81,6 +96,12 @@ export async function extractGraphData(repoId: string, repoPath: string) {
         });
     }
 
-    const graphData = calculateGraph(filesToReturn as unknown as IFile[], pathsMatcher, repoPath);
+    const matcherCache = new Map<string, ((id: string) => string[]) | null>();
+    // Calculate Graph - resolveImportPath needs access to per-file matcher
+    const graphData = calculateGraph(filesToReturn as unknown as IFile[], (id: string, basePath?: string) => {
+        if (!basePath) return null;
+        const matcher = getMatcherForFile(basePath, matcherCache);
+        return matcher ? matcher(id) : null;
+    }, repoPath);
     return { graphData, filesToReturn };
 }
