@@ -81,6 +81,26 @@ export default function DocsPage() {
                             </ul>
                         </div>
                     </div>
+                    {/* Section 4 */}
+                    <div className="card p-6 border border-stroke bg-surface-1">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 rounded-lg bg-indigo/10 text-indigo">
+                                <Layers className="w-5 h-5" />
+                            </div>
+                            <h2 className="text-xl font-bold text-text-0">Advanced Tools</h2>
+                        </div>
+                        <div className="space-y-4 text-text-2 leading-relaxed">
+                            <p>
+                                Traceon 2.0 comes with powerful advanced tools to analyze complex code architectures:
+                            </p>
+                            <ul className="list-disc pl-5 space-y-2">
+                                <li><strong>Traceon AI:</strong> Open the chat panel to ask natural language questions about your codebase, understand relationships, and generate automated architecture summaries.</li>
+                                <li><strong>Time-Travel Diffs:</strong> Use the timeline slider to view your dependency graph at different historical commits. Added dependencies are highlighted in green, and removed ones in red.</li>
+                                <li><strong>Monorepo Support:</strong> For workspaces using Turborepo, Nx, or Lerna, open the Workspace Panel to view inter-package boundaries and cross-module dependencies.</li>
+                                <li><strong>High-Res Exports:</strong> Export your graph to PNG, SVG, PDF, or download a standalone interactive HTML file to embed in wikis and Notion.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

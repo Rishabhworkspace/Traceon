@@ -16,16 +16,16 @@ const features = [
         icon: Code2,
         title: 'AST Parsing',
         description:
-            'Tree-sitter powered analysis extracts every import, export, and structural relationship from your source.',
+            'Deep TypeScript Compiler analysis extracts every import, export, and structural relationship from your source.',
         accent: 'text-emerald',
         accentBg: 'bg-emerald/10',
         span: 'col-span-1',
     },
     {
         icon: Network,
-        title: 'Dependency Graph',
+        title: 'Interactive Graph & Monorepos',
         description:
-            'Interactive force-directed visualization. Zoom, pan, click any node to inspect its connections.',
+            'Force-directed visualization with Lerna/Nx boundary support. Zoom, pan, and inspect cross-package dependencies.',
         accent: 'text-indigo',
         accentBg: 'bg-indigo/10',
         span: 'col-span-1 md:col-span-2',
@@ -34,34 +34,34 @@ const features = [
         icon: Shield,
         title: 'Impact Analysis',
         description:
-            'Select any file — instantly see every module affected by a change, before writing a single line.',
+            'Select any file — instantly see its impact score, risk level, and visual blast radius before writing code.',
         accent: 'text-rose',
         accentBg: 'bg-rose/10',
         span: 'col-span-1',
     },
     {
         icon: Zap,
-        title: 'Zero Friction',
+        title: 'Traceon AI Chat',
         description:
-            'No signup. No config. Paste a URL, hit enter, get architecture insights in under 30 seconds.',
+            'Directly chat with your codebase architecture. Ask about complex dependencies or auto-generate docs.',
         accent: 'text-amber',
         accentBg: 'bg-amber/10',
         span: 'col-span-1',
     },
     {
         icon: BarChart3,
-        title: 'Risk Metrics',
+        title: 'Time-Travel Diffs',
         description:
-            'Dependency density, module coupling scores, and critical path detection — calculated automatically.',
+            'Slide through git commit history to see how your architecture evolved natively with red/green visual diffs.',
         accent: 'text-emerald',
         accentBg: 'bg-emerald/10',
         span: 'col-span-1',
     },
     {
         icon: FileSearch,
-        title: 'File Inspector',
+        title: 'High-Res HTML Exports',
         description:
-            'Click any node to drill into imports, exports, LOC, and the complete list of dependents.',
+            'Export your live dependency graph as a standalone interactive HTML viewer to embed in company wikis or Notion.',
         accent: 'text-indigo',
         accentBg: 'bg-indigo/10',
         span: 'col-span-1 md:col-span-2',
