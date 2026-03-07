@@ -26,15 +26,22 @@ export async function POST(req: NextRequest) {
     }
 }
 
+function sanitizeJSON(obj: unknown): string {
+    return JSON.stringify(obj)
+        .replace(/</g, '\\u003c')
+        .replace(/>/g, '\\u003e')
+        .replace(/&/g, '\\u0026');
+}
+
 function generateStaticHTML(
     nodes: Array<{ id: string; label: string; type: string; loc: number; inDegree: number; outDegree: number }>,
     edges: Array<{ source: string; target: string; relationship: string }>,
     metrics: Record<string, unknown>,
     repoName: string
 ): string {
-    const nodesJSON = JSON.stringify(nodes);
-    const edgesJSON = JSON.stringify(edges);
-    const metricsJSON = JSON.stringify(metrics);
+    const nodesJSON = sanitizeJSON(nodes);
+    const edgesJSON = sanitizeJSON(edges);
+    const metricsJSON = sanitizeJSON(metrics);
 
     return `<!DOCTYPE html>
 <html lang="en">

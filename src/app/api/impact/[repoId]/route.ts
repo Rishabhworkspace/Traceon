@@ -4,6 +4,9 @@ import AnalysisResult from '@/lib/db/models/AnalysisResult';
 import Repository from '@/lib/db/models/Repository';
 import { analyzeImpact, generateFullImpactReport } from '@/lib/analyzer/graph/impact';
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
 export async function GET(
     req: Request,
     { params }: { params: Promise<{ repoId: string }> }
@@ -12,12 +15,21 @@ export async function GET(
         const resolvedParams = await params;
         const { searchParams } = new URL(req.url);
         const nodeId = searchParams.get('nodeId'); // optional: analyze specific node
+        const clientSessionId = searchParams.get('sessionId');
 
         await dbConnect();
+        const session = await getServerSession(authOptions);
 
         const repo = await Repository.findById(resolvedParams.repoId).lean();
         if (!repo) {
             return NextResponse.json({ message: 'Repository not found' }, { status: 404 });
+        }
+
+        const isAuthenticatedRow = repo.userId?.toString() === session?.user?.id;
+        const isGuestRow = repo.sessionId && repo.sessionId === clientSessionId;
+
+        if (!isAuthenticatedRow && !isGuestRow) {
+            return NextResponse.json({ message: 'Unauthorized access to repository data' }, { status: 401 });
         }
 
         const analysis = await AnalysisResult.findOne({ repositoryId: resolvedParams.repoId }).lean();

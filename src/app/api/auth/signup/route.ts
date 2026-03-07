@@ -48,15 +48,9 @@ export async function POST(req: Request) {
             { status: 201 }
         );
     } catch (error: unknown) {
-        if (error instanceof Error) {
-            console.error('Signup error:', error);
-            return NextResponse.json(
-                { message: `Database/Server Error: ${error.message}` },
-                { status: 500 }
-            );
-        }
+        console.error('Signup error:', error);
         return NextResponse.json(
-            { message: 'Internal server error' },
+            { message: 'Internal server error during signup. Please try again later.' },
             { status: 500 }
         );
     }

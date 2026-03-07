@@ -51,10 +51,25 @@ export async function cloneRepository(repoUrl: string, commit: string = 'HEAD'):
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Write ZIP to temp file, extract with adm-zip, then delete the ZIP
+        // Write ZIP to temp file, extract safely to prevent Zip Slip, then delete the ZIP
         await fs.writeFile(tempZip, buffer);
         const zip = new AdmZip(tempZip);
-        zip.extractAllTo(tempDir, true);
+        const zipEntries = zip.getEntries();
+
+        for (const entry of zipEntries) {
+            const resolvedPath = path.resolve(tempDir, entry.entryName);
+            // Ensure the resolved extraction path is strictly inside the target directory
+            if (!resolvedPath.startsWith(path.resolve(tempDir) + path.sep)) {
+                throw new Error('Zip Slip path traversal detected');
+            }
+
+            if (entry.isDirectory) {
+                await fs.mkdir(resolvedPath, { recursive: true });
+            } else {
+                await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
+                await fs.writeFile(resolvedPath, entry.getData());
+            }
+        }
         await fs.unlink(tempZip).catch(() => { });
 
         // GitHub ZIPs contain a single root folder: {repo}-{branch}/

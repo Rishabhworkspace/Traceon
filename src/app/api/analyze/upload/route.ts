@@ -43,9 +43,24 @@ export async function POST(req: Request) {
         await fs.mkdir(extractPath, { recursive: true });
         await fs.writeFile(tempZipPath, buffer);
 
-        // Extract using adm-zip
+        // Extract using adm-zip safely to prevent Zip Slip
         const zip = new AdmZip(tempZipPath);
-        zip.extractAllTo(extractPath, true);
+        const zipEntries = zip.getEntries();
+
+        for (const entry of zipEntries) {
+            const resolvedPath = path.resolve(extractPath, entry.entryName);
+            // Ensure the resolved extraction path is strictly inside the target directory
+            if (!resolvedPath.startsWith(path.resolve(extractPath) + path.sep)) {
+                throw new Error('Zip Slip path traversal detected');
+            }
+
+            if (entry.isDirectory) {
+                await fs.mkdir(resolvedPath, { recursive: true });
+            } else {
+                await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
+                await fs.writeFile(resolvedPath, entry.getData());
+            }
+        }
 
         // Remove the temporary zip file now that we extracted it
         await fs.unlink(tempZipPath).catch(err => console.warn('Failed to delete temp zip:', err));

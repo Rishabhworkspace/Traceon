@@ -24,6 +24,15 @@ export async function POST(req: NextRequest) {
     try {
         const { messages, repoId, model } = await req.json();
 
+        // 0. Enforce strict character limits on input to prevent token/quota exhaustion
+        const inputString = JSON.stringify(messages || []);
+        if (inputString.length > 20000) {
+            return new NextResponse(
+                JSON.stringify({ error: 'Message payload too large (exceeds 20,000 characters). Please clear some chat history or shorten your query.' }),
+                { status: 413, headers: { 'Content-Type': 'application/json' } }
+            );
+        }
+
         // 1. Fetch Repository Architecture Context
         await connectDB();
         const analysis = await AnalysisResult.findOne({ repositoryId: repoId })
