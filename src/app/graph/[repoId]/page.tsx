@@ -268,23 +268,37 @@ function getLayoutedElements(
     edges: Edge[],
     mode: LayoutMode = 'hierarchical'
 ) {
-    let layoutedNodes: Node[];
-    switch (mode) {
-        case 'horizontal':
-            layoutedNodes = layoutDagre(nodes, edges, 'LR');
-            break;
-        case 'radial':
-            layoutedNodes = layoutRadial(nodes, edges);
-            break;
-        case 'force':
-            layoutedNodes = layoutForce(nodes, edges);
-            break;
-        case 'hierarchical':
-        default:
-            layoutedNodes = layoutDagre(nodes, edges, 'TB');
-            break;
+    try {
+        let layoutedNodes: Node[];
+        switch (mode) {
+            case 'horizontal':
+                layoutedNodes = layoutDagre(nodes, edges, 'LR');
+                break;
+            case 'radial':
+                layoutedNodes = layoutRadial(nodes, edges);
+                break;
+            case 'force':
+                layoutedNodes = layoutForce(nodes, edges);
+                break;
+            case 'hierarchical':
+            default:
+                layoutedNodes = layoutDagre(nodes, edges, 'TB');
+                break;
+        }
+        return { nodes: layoutedNodes, edges };
+    } catch (err) {
+        console.error('Layout failed, using fallback grid:', err);
+        // Fallback: simple grid layout
+        const cols = Math.ceil(Math.sqrt(nodes.length));
+        const fallbackNodes = nodes.map((node, i) => ({
+            ...node,
+            position: {
+                x: (i % cols) * (NODE_WIDTH + 40),
+                y: Math.floor(i / cols) * (NODE_HEIGHT + 40),
+            },
+        }));
+        return { nodes: fallbackNodes, edges };
     }
-    return { nodes: layoutedNodes, edges };
 }
 
 export default function GraphPage() {
