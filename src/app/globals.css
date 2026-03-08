@@ -1,26 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  /* ─── Phosphor Terminal Palette ─── */
-  --color-surface-0: #050505;
-  --color-surface-1: #0a0a0c;
-  --color-surface-2: #111113;
-  --color-surface-3: #19191d;
-  --color-surface-4: #222226;
+  /* ─── Obsidian Matrix Palette ─── */
+  --color-surface-0: #000000;
+  --color-surface-1: #09090b;
+  /* zinc-950 */
+  --color-surface-2: #18181b;
+  /* zinc-900 */
+  --color-surface-3: #27272a;
+  /* zinc-800 */
+  --color-surface-4: #3f3f46;
+  /* zinc-700 */
 
   --color-emerald: #10b981;
-  --color-emerald-dim: #065f46;
-  --color-indigo: #818cf8;
+  --color-emerald-dim: #059669;
   --color-amber: #f59e0b;
-  --color-rose: #fb7185;
+  --color-amber-dim: #d97706;
+  --color-rose: #f43f5e;
 
-  --color-text-0: #fafaf9;
-  --color-text-1: #d4d4d8;
-  --color-text-2: #71717a;
-  --color-text-3: #3f3f46;
+  --color-text-0: #f4f4f5;
+  /* zinc-50 */
+  --color-text-1: #e4e4e7;
+  /* zinc-200 */
+  --color-text-2: #a1a1aa;
+  /* zinc-400 */
+  --color-text-3: #71717a;
+  /* zinc-500 */
 
   --color-stroke: #27272a;
-  --color-stroke-subtle: #1c1c1f;
+  /* zinc-800 */
+  --color-stroke-subtle: #18181b;
+  /* zinc-900 */
 
   --font-body: 'Inter', system-ui, sans-serif;
   --font-display: 'Space Grotesk', system-ui, sans-serif;
@@ -83,7 +93,7 @@
     border-bottom: 1px solid var(--color-stroke) !important;
     transition: background-color 0.2s ease, fill 0.2s ease;
   }
-  
+
   .react-flow__controls-button:last-child {
     border-bottom: none !important;
   }
@@ -123,25 +133,27 @@
   .card {
     background: var(--color-surface-2);
     border: 1px solid var(--color-stroke);
-    border-radius: 12px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 4px;
+    /* Flatter, sharper aesthetics */
+    transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out, background-color 0.15s ease-out;
   }
 
   .card:hover {
     border-color: var(--color-text-3);
+    background: var(--color-surface-3);
   }
 
   .card-glow:hover {
-    box-shadow: 0 0 0 1px var(--color-emerald-dim), 0 4px 30px rgba(16, 185, 129, 0.07);
+    box-shadow: inset 2px 0 0 0 var(--color-emerald), 0 4px 30px rgba(16, 185, 129, 0.05);
     border-color: var(--color-emerald-dim);
   }
 
   /* ─── Accent text ─── */
   .text-gradient {
-    background: linear-gradient(135deg, var(--color-emerald), var(--color-indigo));
+    background: linear-gradient(135deg, var(--color-text-1), var(--color-text-3));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
   }
 
   /* ─── Monospace label ─── */
@@ -186,10 +198,10 @@
     color: var(--color-surface-0);
     font-weight: 600;
     font-size: 14px;
-    border-radius: 8px;
+    border-radius: 4px;
     border: none;
     cursor: pointer;
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition: background 0.15s ease-out, transform 0.15s ease-out;
     font-family: var(--font-body);
   }
 
@@ -212,10 +224,10 @@
     color: var(--color-text-1);
     font-weight: 500;
     font-size: 14px;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid var(--color-stroke);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: border-color 0.15s ease-out, background 0.15s ease-out;
     font-family: var(--font-body);
   }
 
@@ -234,7 +246,7 @@
     padding: 0 6px;
     background: var(--color-surface-3);
     border: 1px solid var(--color-stroke);
-    border-radius: 5px;
+    border-radius: 3px;
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--color-text-2);
@@ -245,9 +257,9 @@
   .status-dot {
     width: 6px;
     height: 6px;
-    border-radius: 50%;
+    border-radius: 1px;
     background: var(--color-emerald);
-    box-shadow: 0 0 6px var(--color-emerald);
+    box-shadow: 0 0 8px var(--color-emerald);
   }
 
   /* ─── Section divider ─── */

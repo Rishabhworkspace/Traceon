@@ -5,16 +5,26 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 
-const navLinks = [
-    { label: 'Features', href: '/#features' },
-    { label: 'How it Works', href: '/#how-it-works' },
+const defaultNavLinks = [
+    { label: 'Repo Analysis', href: '/repo' },
+    { label: 'Profile DNA', href: '/profile-analytics' },
+    { label: 'Docs', href: '/docs' },
+];
+
+const repoNavLinks = [
+    { label: 'Features', href: '/repo#features' },
+    { label: 'How it Works', href: '/repo#how-it-works' },
     { label: 'Docs', href: '/docs' },
 ];
 
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const { data: session, status } = useSession();
+    const pathname = usePathname();
+
+    const navLinks = pathname === '/repo' ? repoNavLinks : defaultNavLinks;
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 border-b border-stroke bg-surface-0/70 backdrop-blur-2xl">
@@ -61,12 +71,14 @@ export default function Navbar() {
                             <div className="w-20 h-8 rounded bg-surface-2 animate-pulse" />
                         ) : session ? (
                             <>
-                                <Link
-                                    href="/dashboard"
-                                    className="px-3 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors"
-                                >
-                                    Dashboard
-                                </Link>
+                                {pathname === '/repo' && (
+                                    <Link
+                                        href="/dashboard"
+                                        className="px-3 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                )}
                                 <Link
                                     href="/profile"
                                     className="px-2 py-1.5 text-[13px] text-text-2 hover:text-text-0 transition-colors flex items-center gap-2"
@@ -97,7 +109,7 @@ export default function Navbar() {
                                     Sign in
                                 </Link>
                                 <Link
-                                    href="/"
+                                    href="/repo"
                                     className="btn-cta !text-[13px] !py-1.5 !px-4"
                                 >
                                     Get Started
@@ -137,12 +149,14 @@ export default function Navbar() {
                                 <div className="h-9 w-full rounded bg-surface-2 animate-pulse" />
                             ) : session ? (
                                 <>
-                                    <Link
-                                        href="/dashboard"
-                                        className="btn-ghost flex justify-center !text-sm w-full"
-                                    >
-                                        Dashboard
-                                    </Link>
+                                    {pathname === '/repo' && (
+                                        <Link
+                                            href="/dashboard"
+                                            className="btn-ghost flex justify-center !text-sm w-full"
+                                        >
+                                            Dashboard
+                                        </Link>
+                                    )}
                                     <button
                                         onClick={() => signOut()}
                                         className="btn-ghost flex justify-center items-center gap-2 !text-sm w-full"
