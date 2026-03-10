@@ -21,7 +21,7 @@ export async function getOrAnalyzeProfile(username: string) {
     if (cachedAnalysis) {
         return {
             cached: true,
-            data: cachedAnalysis
+            data: JSON.parse(JSON.stringify(cachedAnalysis))
         };
     }
 
@@ -61,6 +61,6 @@ export async function getOrAnalyzeProfile(username: string) {
 
     return {
         cached: false,
-        data: profileDocument
+        data: JSON.parse(JSON.stringify(profileDocument))
     };
 }

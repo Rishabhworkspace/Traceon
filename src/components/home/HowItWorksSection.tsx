@@ -23,7 +23,7 @@ const steps = [
         title: 'Explore',
         description:
             'Navigate the interactive graph. Click nodes, run impact analysis, inspect module details.',
-        code: '✓ 342 modules · 1,208 edges',
+        code: '[SUCCESS] 342 modules · 1,208 edges',
     },
 ];
 
