@@ -44,8 +44,8 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         className="flex flex-col gap-6"
                     >
                         <DomainExpertise
-                            scores={data.aiAssessment.domainScores}
-                            descriptions={data.aiAssessment.domainDescriptions}
+                            scores={data.aiAssessment?.domainScores}
+                            descriptions={data.aiAssessment?.domainDescriptions}
                         />
                         <BuilderMindset username={data.username} recentCommitsCount={data.techStack ? Object.keys(data.techStack).length * 2 : 15} />
                     </motion.div>
@@ -73,7 +73,7 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <SkillsGrid skillsByDomain={data.aiAssessment.skillsByDomain} />
+                        <SkillsGrid skillsByDomain={data.aiAssessment?.skillsByDomain || []} />
                     </motion.div>
                 );
             case 'languages':
@@ -99,7 +99,7 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <RepositoriesList repositories={data.repositories} />
+                        <RepositoriesList repositories={data.repositories || []} />
                     </motion.div>
                 );
             case 'dna':
@@ -112,7 +112,7 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <EngineeringDNA dna={data.aiAssessment.engineeringDNA} />
+                        <EngineeringDNA dna={data.aiAssessment?.engineeringDNA} />
                     </motion.div>
                 );
             case 'quality':
@@ -125,7 +125,7 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <CodeQualityReport traits={data.aiAssessment.traits} />
+                        <CodeQualityReport traits={data.aiAssessment?.traits} />
                     </motion.div>
                 );
             default:
