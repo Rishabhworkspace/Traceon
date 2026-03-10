@@ -74,7 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${interBody.variable} ${spaceGrotesk.variable} ${firaCode.variable} antialiased`}
+        className={`${interBody.variable} ${spaceGrotesk.variable} ${firaCode.variable} antialiased selection:bg-emerald/30 selection:text-emerald`}
       >
         <NextAuthProvider>
           <Navbar />

@@ -26,6 +26,10 @@ export default function Navbar() {
 
     const navLinks = pathname === '/repo' ? repoNavLinks : defaultNavLinks;
 
+    if (pathname === '/') {
+        return null;
+    }
+
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 border-b border-stroke bg-surface-0/70 backdrop-blur-2xl">
             <div className="mx-auto max-w-6xl px-5">
