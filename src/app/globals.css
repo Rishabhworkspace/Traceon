@@ -408,6 +408,19 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
 /* ─── Mobile safe areas ─── */
 @supports (padding: max(0px)) {
   .safe-bottom {

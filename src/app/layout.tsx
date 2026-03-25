@@ -72,9 +72,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
         className={`${interBody.variable} ${spaceGrotesk.variable} ${firaCode.variable} antialiased selection:bg-emerald/30 selection:text-emerald`}
+        suppressHydrationWarning
       >
         <NextAuthProvider>
           <Navbar />
