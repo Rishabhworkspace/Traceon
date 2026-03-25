@@ -18,23 +18,40 @@ export function MasterHero() {
             <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col items-center">
                 {/* Hero Text */}
                 <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: {},
+                        visible: {
+                            transition: {
+                                staggerChildren: 0.1,
+                            },
+                        },
+                    }}
                     className="text-center mb-16"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-stroke bg-surface-1/80 backdrop-blur-md mb-8 relative group cursor-default">
+                    <motion.div 
+                        variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border border-stroke bg-surface-1/80 backdrop-blur-md mb-8 relative group cursor-default"
+                    >
                         <div className="absolute inset-0 bg-gradient-to-r from-emerald/0 via-emerald/5 to-emerald/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         <span className="w-1.5 h-1.5 bg-emerald animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                         <span className="text-xs font-mono font-medium tracking-widest text-text-1 uppercase">Traceon 3.0 <span className="text-text-3 mx-2">/</span> Intelligence Platform</span>
-                    </div>
+                    </motion.div>
 
                     <h1 className="text-5xl md:text-7xl font-display font-bold text-text-0 mb-6 tracking-tighter leading-[1.05]">
-                        Demystify Code.<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-text-0 via-text-1 to-text-3 pb-2 inline-block">Decode Developers.</span>
+                        <motion.span variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="inline-block">Demystify Code.</motion.span>
+                        <br />
+                        <motion.span variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="text-transparent bg-clip-text bg-gradient-to-r from-text-0 via-text-1 to-text-3 pb-2 inline-block">Decode Developers.</motion.span>
                     </h1>
-
-                    Traceon is the ultimate toolkit for technical discovery. Whether you need to map out a massive legacy codebase or mathematically analyze a developer's engineering DNA, we've got the AI agents for the job.
+                    
+                    <motion.p 
+                        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                        className="text-text-2 max-w-2xl mx-auto"
+                    >
+                        Traceon is the ultimate toolkit for technical discovery. Whether you need to map out a massive legacy codebase or mathematically analyze a developer's engineering DNA, we've got the AI agents for the job.
+                    </motion.p>
                 </motion.div>
 
                 {/* The Two Massive Feature Cards */}
