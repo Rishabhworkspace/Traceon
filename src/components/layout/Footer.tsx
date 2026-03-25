@@ -21,7 +21,7 @@ const footerLinks = {
 export default function Footer() {
     const pathname = usePathname();
 
-    if (pathname?.startsWith('/graph/') || pathname === '/') {
+    if (pathname?.startsWith('/graph/') || pathname === '/' || pathname === '/login' || pathname === '/signup') {
         return null;
     }
 

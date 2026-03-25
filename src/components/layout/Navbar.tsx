@@ -113,7 +113,7 @@ export default function Navbar() {
                                     Sign in
                                 </Link>
                                 <Link
-                                    href="/repo"
+                                    href="/signup"
                                     className="btn-cta !text-[13px] !py-1.5 !px-4"
                                 >
                                     Get Started
@@ -178,7 +178,7 @@ export default function Navbar() {
                                         Sign in
                                     </Link>
                                     <Link
-                                        href="/"
+                                        href="/signup"
                                         className="btn-cta flex justify-center !text-sm w-full"
                                     >
                                         Get Started
