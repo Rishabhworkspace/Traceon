@@ -1,46 +1,28 @@
-// src/app/profile/[username]/loading.tsx
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 
-export default function LoadingProfile() {
+export default function ProfileLoading() {
     return (
-        <main className="min-h-screen noise dot-matrix bg-background flex flex-col items-center justify-center p-5">
-            <div className="w-full max-w-2xl bg-surface-1 rounded-xl shadow-2xl border border-stroke overflow-hidden animate-fade-up">
-
-                {/* Terminal Header */}
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-stroke bg-surface-2/50">
-                    <div className="flex gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-rose/80" />
-                        <div className="w-3 h-3 rounded-full bg-amber/80" />
-                        <div className="w-3 h-3 rounded-full bg-emerald/80" />
+        <main className="min-h-screen noise dot-matrix bg-background flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4 animate-fade-up">
+                <div className="relative">
+                    <div className="w-16 h-16 rounded-xl bg-surface-1 border border-stroke/50 flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 text-emerald animate-spin" />
                     </div>
-                    <span className="text-xs text-text-3 font-mono ml-3 font-medium">traceon — ai-profiler</span>
+                    <div className="absolute -inset-2 bg-emerald/5 rounded-xl blur-xl animate-pulse" />
                 </div>
-
-                {/* Terminal Body */}
-                <div className="p-6 font-mono text-sm leading-relaxed min-h-[300px] flex flex-col">
-                    <div className="flex flex-col gap-2">
-                        <div className="text-text-0">$ traceon profile fetch --all</div>
-                        <div className="text-text-2 flex items-center gap-2">
-                            <span className="text-emerald">→</span> Connecting to GitHub API...
-                        </div>
-                        <div className="text-text-2 flex items-center gap-2 animate-pulse">
-                            <span className="text-emerald">→</span> Aggregating top 50 repositories...
-                        </div>
-                        <div className="text-text-2 flex items-center gap-2 animate-pulse delay-150">
-                            <span className="text-emerald">→</span> Analyzing commit language byte signatures...
-                        </div>
-
-                        <div className="mt-4 text-emerald font-medium">
-                            <Loader2 className="w-4 h-4 inline-block animate-spin mr-2" />
-                            Evaluating Engineering DNA against 500+ heuristics...
-                        </div>
-                    </div>
-
-                    <div className="mt-auto pt-6 text-xs text-text-3 border-t border-stroke/50">
-                        This involves deep LLM analysis and may take 15-30 seconds if uncached.
-                    </div>
+                <div className="flex flex-col items-center gap-2">
+                    <div className="h-5 w-48 bg-surface-2 rounded-sm animate-pulse" />
+                    <div className="h-3 w-36 bg-surface-2/50 rounded-sm animate-pulse" />
                 </div>
-
+                <span className="text-[10px] uppercase tracking-widest text-text-4 font-mono mt-2">
+                    Analyzing profile DNA...
+                </span>
+                {/* Skeleton cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 w-full max-w-4xl px-4">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="h-32 bg-surface-1 border border-stroke/50 rounded-sm animate-pulse" />
+                    ))}
+                </div>
             </div>
         </main>
     );

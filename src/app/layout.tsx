@@ -31,15 +31,19 @@ export const metadata: Metadata = {
     template: "%s | Traceon",
   },
   description:
-    "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict the impact of your changes.",
+    "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict the impact of your changes. Analyze GitHub profiles to assess engineering DNA, developer fit, and squad compatibility.",
   keywords: [
     "codebase analysis",
     "dependency graph",
     "architecture visualization",
-    "impact analysis",
-    "developer tools",
-    "code intelligence",
-    "static analysis",
+    "developer evaluation",
+    "engineering DNA",
+    "GitHub profile analyzer",
+    "developer assessment tool",
+    "tech hiring",
+    "squad compatibility",
+    "code quality analysis",
+    "open source contributor insights",
   ],
   icons: {
     icon: [
@@ -51,14 +55,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Traceon — Codebase Intelligence Platform",
     description:
-      "Understand any codebase instantly. Visualize architecture, trace dependencies, and predict impact.",
+      "Analyze codebases and GitHub profiles. Visualize architecture, trace dependencies, assess engineering DNA, and evaluate developer fit.",
     type: "website",
     siteName: "Traceon",
   },
   twitter: {
     card: "summary_large_image",
     title: "Traceon — Codebase Intelligence Platform",
-    description: "Visualize architecture, trace dependencies, and predict impact.",
+    description: "Analyze codebases and GitHub profiles. Assess engineering DNA and squad compatibility.",
   },
   robots: {
     index: true,

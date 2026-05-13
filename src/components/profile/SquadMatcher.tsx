@@ -3,13 +3,15 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Fingerprint, CheckCircle2, XCircle, Search, Target, RefreshCw } from 'lucide-react';
+import { ProfileData } from '@/app/profile/[username]/page';
 
 interface SquadMatcherProps {
-    data: any; // Entire profile data payload
+    data: ProfileData; // Entire profile data payload
 }
 
 export function SquadMatcher({ data }: SquadMatcherProps) {
     const [inputStack, setInputStack] = useState<string>('React, TypeScript, Node.js, AWS, PostgreSQL, Tailwind');
+    const [computedStack, setComputedStack] = useState<string>('React, TypeScript, Node.js, AWS, PostgreSQL, Tailwind');
     const [isScanning, setIsScanning] = useState(false);
 
     // Flatten all discovered skills from the profile
@@ -25,7 +27,7 @@ export function SquadMatcher({ data }: SquadMatcherProps) {
 
         // 2. AI Extracted Skills
         if (data.aiAssessment?.skillsByDomain) {
-            data.aiAssessment.skillsByDomain.forEach((domainData: any) => {
+            data.aiAssessment.skillsByDomain.forEach((domainData) => {
                 domainData.skills.forEach((skill: string) => {
                     skills.add(skill.toLowerCase().trim());
                 });
@@ -37,11 +39,11 @@ export function SquadMatcher({ data }: SquadMatcherProps) {
 
     // Parse user input requirement
     const requiredSkills = useMemo(() => {
-        return inputStack
+        return computedStack
             .split(',')
             .map(s => s.trim())
             .filter(s => s.length > 0);
-    }, [inputStack]);
+    }, [computedStack]);
 
     // Calculate match
     const { matched, missing, score } = useMemo(() => {
@@ -75,6 +77,7 @@ export function SquadMatcher({ data }: SquadMatcherProps) {
 
     const handleScan = () => {
         setIsScanning(true);
+        setComputedStack(inputStack);
         setTimeout(() => setIsScanning(false), 800);
     };
 

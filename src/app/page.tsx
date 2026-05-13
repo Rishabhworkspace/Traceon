@@ -14,6 +14,13 @@ export default function TraceonIntroPage() {
   const [displayText, setDisplayText] = useState("");
 
   useEffect(() => {
+    const hasVisited = sessionStorage.getItem('hasVisited');
+    if (hasVisited) {
+      router.replace('/home');
+      return;
+    }
+    sessionStorage.setItem('hasVisited', 'true');
+
     let currentProgress = 0;
     
     // Total duration of progress ~ 1.5s - 2s
