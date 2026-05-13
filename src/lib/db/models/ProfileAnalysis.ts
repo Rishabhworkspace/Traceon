@@ -55,12 +55,33 @@ const profileAnalysisSchema = new mongoose.Schema({
         updated_at: String,
         html_url: String,
     }],
+    commitFrequency: {
+        last30Days: Number,
+        last90Days: Number,
+        last365Days: Number,
+        longestStreak: Number,
+    },
+    pullRequestActivity: {
+        totalPRsOpened: Number,
+        totalPRsMerged: Number,
+        avgTimeToMerge: Number,
+        reviewedOthers: Number,
+    },
+    issueActivity: {
+        totalOpened: Number,
+        totalClosed: Number,
+        avgResponseTime: Number,
+    },
+    accountAge: {
+        years: Number,
+        months: Number,
+    },
+    totalStarsReceived: Number,
+    totalForksReceived: Number,
     lastAnalyzedAt: {
         type: Date,
         default: Date.now,
     },
 }, { timestamps: true });
 
-// Delete the old cached model so Next.js HMR doesn't use the old schema
-delete mongoose.models.ProfileAnalysis;
-export const ProfileAnalysis = mongoose.model('ProfileAnalysis', profileAnalysisSchema);
+export const ProfileAnalysis = mongoose.models.ProfileAnalysis || mongoose.model('ProfileAnalysis', profileAnalysisSchema);

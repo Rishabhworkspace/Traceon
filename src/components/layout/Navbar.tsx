@@ -36,10 +36,10 @@ export default function Navbar() {
                 <div className="flex h-14 items-center justify-between">
                     {/* Logo */}
                     <Link
-                        href="/"
+                        href="/home"
                         className="flex items-center gap-2 group"
                         onClick={() => {
-                            if (window.location.pathname === '/') {
+                            if (window.location.pathname === '/home') {
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                             }
                         }}

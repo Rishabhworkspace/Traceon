@@ -29,7 +29,7 @@ export default function LoginPage() {
             if (res?.error) {
                 setError('Invalid email or password');
             } else {
-                router.push('/');
+                router.push('/home');
                 router.refresh();
             }
         } catch {
@@ -259,7 +259,7 @@ export default function LoginPage() {
                     <div className="grid grid-cols-2 gap-3 mb-8">
                         <button
                             type="button"
-                            onClick={() => signIn('google', { callbackUrl: '/' })}
+                            onClick={() => signIn('google', { callbackUrl: '/home' })}
                             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-stroke bg-surface-0 hover:bg-surface-1 transition-colors text-sm font-medium text-text-0 shadow-sm"
                         >
                             <Chrome className="w-5 h-5" />
@@ -267,7 +267,7 @@ export default function LoginPage() {
                         </button>
                         <button
                             type="button"
-                            onClick={() => signIn('github', { callbackUrl: '/' })}
+                            onClick={() => signIn('github', { callbackUrl: '/home' })}
                             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-stroke bg-surface-0 hover:bg-surface-1 transition-colors text-sm font-medium text-text-0 shadow-sm"
                         >
                             <Github className="w-5 h-5" />

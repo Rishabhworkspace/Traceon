@@ -40,6 +40,19 @@ export async function POST(req: Request) {
         const sessionId = session?.user?.id ? null : (clientSessionId || uuidv4());
         const userId = session?.user?.id || null;
 
+        const existing = await Repository.findOne({
+            repoUrl,
+            userId,
+            status: 'complete',
+        });
+        if (existing) {
+            return NextResponse.json({
+                success: true,
+                repositoryId: existing._id,
+                cached: true,
+            }, { status: 200 });
+        }
+
         // Create the initial repository record
         const repository = await Repository.create({
             userId,

@@ -2,12 +2,21 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrAnalyzeProfile } from '@/lib/profile/service';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+export const maxDuration = 60;
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ username: string }> }
 ) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const resolvedParams = await params;
         const username = resolvedParams.username;
 

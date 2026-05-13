@@ -14,6 +14,19 @@ export async function POST(req: Request) {
             );
         }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return NextResponse.json({ message: 'Invalid email format' }, { status: 400 });
+        }
+
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)/;
+        if (!passwordRegex.test(password)) {
+            return NextResponse.json(
+                { message: 'Password must contain at least one uppercase letter and one number' },
+                { status: 400 }
+            );
+        }
+
         if (password.length < 8) {
             return NextResponse.json(
                 { message: 'Password must be at least 8 characters' },
