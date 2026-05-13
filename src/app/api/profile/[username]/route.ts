@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrAnalyzeProfile } from '@/lib/profile/service';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const maxDuration = 60;
 
@@ -12,6 +13,24 @@ export async function GET(
     { params }: { params: Promise<{ username: string }> }
 ) {
     try {
+        // Rate Limiting (5 requests per 1 minute)
+        const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+        const rateLimitResult = rateLimit(ip, 5, 60 * 1000);
+
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { error: 'Too Many Requests. Please try again later.' },
+                { 
+                    status: 429,
+                    headers: {
+                        'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+                        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+                        'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+                    }
+                }
+            );
+        }
+
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

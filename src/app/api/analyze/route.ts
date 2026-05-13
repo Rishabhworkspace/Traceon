@@ -7,11 +7,30 @@ import Repository from '@/lib/db/models/Repository';
 import { cloneRepository } from '@/lib/analyzer/clone';
 import { runAnalysisPipeline } from '@/lib/analyzer/pipeline';
 import { v4 as uuidv4 } from 'uuid';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const maxDuration = 60; // Allow up to 60s for Vercel Pro, 10s for free tier
 
 export async function POST(req: Request) {
     try {
+        // Rate Limiting (5 requests per 1 minute)
+        const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
+        const rateLimitResult = rateLimit(ip, 5, 60 * 1000);
+
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { message: 'Too Many Requests. Please try again later.' },
+                { 
+                    status: 429,
+                    headers: {
+                        'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+                        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+                        'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+                    }
+                }
+            );
+        }
+
         const session = await getServerSession(authOptions);
         const { repoUrl, sessionId: clientSessionId } = await req.json();
 
