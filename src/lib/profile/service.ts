@@ -50,6 +50,12 @@ export async function getOrAnalyzeProfile(username: string) {
             updated_at: repo.updated_at,
             html_url: repo.html_url
         })),
+        commitFrequency: githubData.commitFrequency,
+        pullRequestActivity: githubData.pullRequestActivity,
+        issueActivity: githubData.issueActivity,
+        accountAge: githubData.accountAge,
+        totalStarsReceived: githubData.totalStarsReceived,
+        totalForksReceived: githubData.totalForksReceived,
         lastAnalyzedAt: new Date()
     };
 

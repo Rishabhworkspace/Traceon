@@ -47,7 +47,12 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                             scores={data.aiAssessment?.domainScores}
                             descriptions={data.aiAssessment?.domainDescriptions}
                         />
-                        <BuilderMindset username={data.username} recentCommitsCount={data.techStack ? Object.keys(data.techStack).length * 2 : 15} />
+                        <BuilderMindset 
+                            username={data.username} 
+                            commitFrequency={data.commitFrequency}
+                            pullRequestActivity={data.pullRequestActivity}
+                            recentCommitsCount={data.techStack ? Object.keys(data.techStack).length * 2 : 15} 
+                        />
                     </motion.div>
                 );
             case 'matcher':

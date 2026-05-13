@@ -12,6 +12,10 @@ interface DomainExpertiseProps {
         uniqueness: number;
         influence: number;
         contribution: number;
+        consistency: number;
+        collaboration: number;
+        growthTrajectory: number;
+        productionReadiness: number;
     };
     descriptions?: {
         reliability: string;
@@ -20,6 +24,10 @@ interface DomainExpertiseProps {
         uniqueness: string;
         influence: string;
         contribution: string;
+        consistency: string;
+        collaboration: string;
+        growthTrajectory: string;
+        productionReadiness: string;
     };
 }
 
@@ -45,14 +53,23 @@ export function DomainExpertise({ scores, descriptions }: DomainExpertiseProps) 
     const safeScores = scores instanceof Map ? Object.fromEntries(scores) : (scores || {});
     const safeDescriptions = descriptions instanceof Map ? Object.fromEntries(descriptions) : (descriptions || {});
 
-    const sum = (safeScores.reliability || 0) + (safeScores.security || 0) + (safeScores.maintainability || 0) + (safeScores.uniqueness || 0) + (safeScores.influence || 0) + (safeScores.contribution || 0);
-    const overallScore = (sum / 6) / 10;
+    const sum = (safeScores.reliability || 0) + (safeScores.security || 0) + (safeScores.maintainability || 0) + 
+                (safeScores.uniqueness || 0) + (safeScores.influence || 0) + (safeScores.contribution || 0) +
+                (safeScores.consistency || 0) + (safeScores.collaboration || 0) + (safeScores.growthTrajectory || 0) + 
+                (safeScores.productionReadiness || 0);
+                
+    // We compute the average based on 10 scores now
+    const overallScore = (sum / 10) / 10;
 
     const data = [
         { subject: 'Reliability', A: (safeScores.reliability ?? 0) / 10, fullMark: 10 },
+        { subject: 'Prod Ready', A: (safeScores.productionReadiness ?? 0) / 10, fullMark: 10 },
         { subject: 'Influence', A: (safeScores.influence ?? 0) / 10, fullMark: 10 },
         { subject: 'Contribution', A: (safeScores.contribution ?? 0) / 10, fullMark: 10 },
+        { subject: 'Consistency', A: (safeScores.consistency ?? 0) / 10, fullMark: 10 },
+        { subject: 'Collaboration', A: (safeScores.collaboration ?? 0) / 10, fullMark: 10 },
         { subject: 'Uniqueness', A: (safeScores.uniqueness ?? 0) / 10, fullMark: 10 },
+        { subject: 'Growth', A: (safeScores.growthTrajectory ?? 0) / 10, fullMark: 10 },
         { subject: 'Maintainability', A: (safeScores.maintainability ?? 0) / 10, fullMark: 10 },
         { subject: 'Security', A: (safeScores.security ?? 0) / 10, fullMark: 10 },
     ];
@@ -64,11 +81,14 @@ export function DomainExpertise({ scores, descriptions }: DomainExpertiseProps) 
         { key: 'security', label: 'Security', score: (safeScores.security ?? 0) / 10, desc: safeDescriptions.security },
         { key: 'uniqueness', label: 'Uniqueness', score: (safeScores.uniqueness ?? 0) / 10, desc: safeDescriptions.uniqueness },
         { key: 'influence', label: 'Influence', score: (safeScores.influence ?? 0) / 10, desc: safeDescriptions.influence },
+        { key: 'consistency', label: 'Consistency', score: (safeScores.consistency ?? 0) / 10, desc: safeDescriptions.consistency },
+        { key: 'collaboration', label: 'Collaboration', score: (safeScores.collaboration ?? 0) / 10, desc: safeDescriptions.collaboration },
+        { key: 'growthTrajectory', label: 'Growth Trajectory', score: (safeScores.growthTrajectory ?? 0) / 10, desc: safeDescriptions.growthTrajectory },
+        { key: 'productionReadiness', label: 'Production Readiness', score: (safeScores.productionReadiness ?? 0) / 10, desc: safeDescriptions.productionReadiness },
     ];
 
-    // If we have no scores at all, or if it's returning the OLD schema (frontend, etc)
-    // we should render a "Re-analyzing" or "No Data" state so the chart isn't just an empty dot.
-    const hasValidScores = Object.keys(safeScores).length > 0 && ('reliability' in safeScores || safeScores.reliability !== undefined);
+    // Check for both old and new schema validity (if consistency is missing, it's the old schema)
+    const hasValidScores = Object.keys(safeScores).length > 0 && ('consistency' in safeScores || safeScores.consistency !== undefined);
 
     if (!hasValidScores) {
         return (
