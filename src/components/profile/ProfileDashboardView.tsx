@@ -44,14 +44,16 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         className="flex flex-col gap-6"
                     >
                         <DomainExpertise
-                            scores={data.aiAssessment?.domainScores}
-                            descriptions={data.aiAssessment?.domainDescriptions}
+                            curismScores={data.curismScores}
+                            curismDescriptions={data.aiAssessment?.curismDescriptions}
+                            masterScore={data.masterScore}
                         />
                         <BuilderMindset 
                             username={data.username} 
                             commitFrequency={data.commitFrequency}
                             pullRequestActivity={data.pullRequestActivity}
-                            recentCommitsCount={data.techStack ? Object.keys(data.techStack).length * 2 : 15} 
+                            recentCommitsCount={data.techStack ? Object.keys(data.techStack).length * 2 : 15}
+                            acidBreakdown={data.acidBreakdown}
                         />
                     </motion.div>
                 );

@@ -1,18 +1,59 @@
 // src/app/profile/[username]/page.tsx
 import { Suspense } from 'react';
+
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 import { notFound } from 'next/navigation';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileDashboardView } from '@/components/profile/ProfileDashboardView';
 import { getOrAnalyzeProfile } from '@/lib/profile/service';
-import { ProfileAnalysisOutput } from '@/lib/profile/analyzer';
 
 export interface ProfileData {
     username: string;
     avatarUrl: string;
     bio: string | null;
     techStack: Record<string, number>;
-    aiAssessment: ProfileAnalysisOutput;
+    curismScores: {
+        reliability: number;
+        security: number;
+        maintainability: number;
+        influence: number;
+        contribution: number;
+        uniqueness: number;
+    };
+    acidBreakdown: {
+        architecture: number;
+        crossDomain: number;
+        innovation: number;
+        documentation: number;
+    };
+    masterScore: {
+        finalScore: number;
+        grade: string;
+        gradeTitle: string;
+        hardSkills: number;
+        softSkills: number;
+        builderSkills: number;
+        percentile?: number;
+    };
+    aiAssessment: {
+        archetype: string;
+        curismDescriptions: Record<string, string>;
+        engineeringDNA: {
+            problemSolving: string;
+            architectureMaturity: string;
+            documentation: string;
+        };
+        traits: {
+            strengths: string[];
+            weaknesses: string[];
+        };
+        skillsByDomain: {
+            domain: string;
+            skills: string[];
+        }[];
+    };
     repositories: {
         name: string;
         description: string;
@@ -25,18 +66,17 @@ export interface ProfileData {
         last30Days: number;
         last90Days: number;
         last365Days: number;
-        longestStreak: number;
+        activeDaysLastYear: number;
     };
     pullRequestActivity: {
         totalPRsOpened: number;
         totalPRsMerged: number;
-        avgTimeToMerge: number;
-        reviewedOthers: number;
+        externalPRsMerged: number;
+        prReviewsDone: number;
     };
     issueActivity: {
         totalOpened: number;
-        totalClosed: number;
-        avgResponseTime: number;
+        externalIssues: number;
     };
     accountAge: {
         years: number;
