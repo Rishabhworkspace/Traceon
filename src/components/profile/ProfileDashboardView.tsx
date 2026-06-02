@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ErrorBoundary from '@/components/layout/ErrorBoundary';
 import { LayoutDashboard, Code2, Dna, ShieldAlert, Activity, Target } from 'lucide-react';
 import { DomainExpertise } from '@/components/profile/DomainExpertise';
 import { TechStack } from '@/components/profile/TechStack';
@@ -48,8 +49,8 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                             curismDescriptions={data.aiAssessment?.curismDescriptions}
                             masterScore={data.masterScore}
                         />
-                        <BuilderMindset 
-                            username={data.username} 
+                        <BuilderMindset
+                            username={data.username}
                             commitFrequency={data.commitFrequency}
                             pullRequestActivity={data.pullRequestActivity}
                             recentCommitsCount={data.techStack ? Object.keys(data.techStack).length * 2 : 15}
@@ -67,7 +68,9 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <SquadMatcher data={data} />
+                        <ErrorBoundary fallbackMessage="Failed to load Matcher tab">
+                            <SquadMatcher data={data} />
+                        </ErrorBoundary>
                     </motion.div>
                 );
             case 'skills':
@@ -80,7 +83,11 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <SkillsGrid skillsByDomain={data.aiAssessment?.skillsByDomain || []} />
+                        <ErrorBoundary fallbackMessage="Failed to load Skills tab">
+                            <SkillsGrid
+                                skillsByDomain={data.aiAssessment?.skillsByDomain}
+                            />
+                        </ErrorBoundary>
                     </motion.div>
                 );
             case 'languages':
@@ -93,7 +100,10 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <TechStack languages={data.techStack} />
+                        <ErrorBoundary fallbackMessage="Failed to load Languages tab">
+                            <TechStack languages={data.techStack} />
+                        </ErrorBoundary>
+
                     </motion.div>
                 );
             case 'repositories':
@@ -106,7 +116,9 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <RepositoriesList repositories={data.repositories || []} />
+                        <ErrorBoundary fallbackMessage="Failed to load Repositories tab">
+                            <RepositoriesList repositories={data.repositories || []} />
+                        </ErrorBoundary>
                     </motion.div>
                 );
             case 'dna':
@@ -119,7 +131,9 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <EngineeringDNA dna={data.aiAssessment?.engineeringDNA} />
+                        <ErrorBoundary fallbackMessage="Failed to load DNA tab">
+                            <EngineeringDNA dna={data.aiAssessment?.engineeringDNA} />
+                        </ErrorBoundary>
                     </motion.div>
                 );
             case 'quality':
@@ -132,7 +146,9 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                         transition={{ duration: 0.2 }}
                         className="flex flex-col gap-6"
                     >
-                        <CodeQualityReport traits={data.aiAssessment?.traits} />
+                        <ErrorBoundary fallbackMessage="Failed to load Quality tab">
+                            <CodeQualityReport traits={data.aiAssessment?.traits} />
+                        </ErrorBoundary>
                     </motion.div>
                 );
             default:
