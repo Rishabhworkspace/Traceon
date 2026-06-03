@@ -1,0 +1,38 @@
+# CodeRabbit Configuration File
+# Documentation: https://coderabbit.ai/docs/configuration
+
+language: "en-US"
+tone: "professional"
+
+early_access: false
+
+reviews:
+  # Enable CodeRabbit to review pull requests
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  
+  # Set up review filters
+  path_filters:
+    - "!*.md"
+    - "!*.json"
+    - "!*.lock"
+    - "!package-lock.json"
+    - "!yarn.lock"
+    - "!pnpm-lock.yaml"
+    - "!node_modules/**"
+    - "!.next/**"
+    - "!dist/**"
+    - "!build/**"
+
+  # Customize feedback to match the project's priorities (Traceon)
+  instructions: |
+    - Focus heavily on security vulnerabilities (e.g. XSS, JWT exposure, raw token leaks).
+    - Ensure React components use proper hooks and prevent unnecessary re-renders.
+    - Check that API routes enforce proper authentication and rate limiting.
+    - Suggest TypeScript typing improvements instead of `any`.
+    - Do not comment on stylistic choices if they are just formatting (leave that to Prettier/ESLint).
+
+chat:
+  auto_reply: true
