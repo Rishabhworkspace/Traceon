@@ -4,6 +4,8 @@
 
 # Traceon
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/Rishabhworkspace/Traceon?utm_source=oss&utm_medium=github&utm_campaign=Rishabhworkspace%2FTraceon&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 **Two powerful lenses. One unified platform.**
 
 [![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)

@@ -174,7 +174,7 @@ export default function ProfileForm({ session }: { session: Session }) {
     };
 
     const handleDeleteAccount = async () => {
-        if (deleteConfirmText !== 'DELETE') return;
+        if (deleteConfirmText.trim() !== 'DELETE') return;
         setIsDeleting(true);
         try {
             const res = await fetch('/api/user/profile', { method: 'DELETE' });
@@ -422,7 +422,7 @@ export default function ProfileForm({ session }: { session: Session }) {
                             <button
                                 type="button"
                                 onClick={handleDeleteAccount}
-                                disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                                disabled={deleteConfirmText.trim() !== 'DELETE' || isDeleting}
                                 className="flex items-center gap-2 px-5 py-2 rounded-lg bg-rose text-white text-sm font-mono hover:bg-rose/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isDeleting ? (

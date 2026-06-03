@@ -32,6 +32,7 @@ export default function GitHubProfileSection() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [analyzingRepo, setAnalyzingRepo] = useState<string | null>(null);
+    const [analyzeError, setAnalyzeError] = useState<string | null>(null);
     const [githubUsername, setGithubUsername] = useState('');
     const [isLinking, setIsLinking] = useState(false);
 
@@ -40,6 +41,13 @@ export default function GitHubProfileSection() {
     const [visibleStarred, setVisibleStarred] = useState(6);
 
     const router = useRouter();
+
+    // Auto-clear analyze error after 5 seconds
+    useEffect(() => {
+        if (!analyzeError) return;
+        const timer = setTimeout(() => setAnalyzeError(null), 5000);
+        return () => clearTimeout(timer);
+    }, [analyzeError]);
 
     const fetchGitHubData = async () => {
         try {
@@ -107,7 +115,7 @@ export default function GitHubProfileSection() {
             router.push(`/analyze?id=${responseData.repositoryId}`);
         } catch (err: unknown) {
             console.error('Failed to trigger analysis:', err);
-            alert(err instanceof Error ? err.message : 'Error starting analysis');
+            setAnalyzeError(err instanceof Error ? err.message : 'Error starting analysis');
             setAnalyzingRepo(null);
         }
     };
@@ -214,6 +222,15 @@ export default function GitHubProfileSection() {
 
     return (
         <div className="space-y-8 mt-8 pb-8">
+            {analyzeError && (
+                <div className="flex items-center gap-2 text-rose text-sm font-mono bg-rose/5 p-3 rounded-lg border border-rose/10" role="alert">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <p className="flex-1">{analyzeError}</p>
+                    <button onClick={() => setAnalyzeError(null)} className="text-rose/60 hover:text-rose transition-colors" aria-label="Dismiss error">
+                        ×
+                    </button>
+                </div>
+            )}
             {/* Pinned / Owned Repositories */}
             {data.repos && data.repos.length > 0 && (
                 <div>
