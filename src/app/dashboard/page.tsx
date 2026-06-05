@@ -5,13 +5,28 @@ import { Settings } from 'lucide-react';
 import GitHubProfileSection from '@/components/dashboard/GitHubProfileSection';
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics';
 import Link from 'next/link';
+import dbConnect from '@/lib/db/connection';
+import User from '@/lib/db/models/User';
 
 export default async function DashboardPage() {
     const session = await getServerSession(authOptions);
 
-    if (!session) {
+    if (!session?.user?.email) {
         redirect('/login');
     }
+
+    await dbConnect();
+    const dbUser = await User.findOne({ email: session.user.email }).lean();
+
+    const userProfile = {
+        name: dbUser?.name || session.user.name || 'Developer',
+        email: dbUser?.email || session.user.email,
+        githubUsername: dbUser?.githubUsername || null,
+        role: 'Developer',
+        memberSince: dbUser?.createdAt
+            ? new Date(dbUser.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+            : null,
+    };
 
     return (
         <div className="min-h-screen pt-28 pb-12 px-5 max-w-7xl mx-auto">
@@ -22,7 +37,7 @@ export default async function DashboardPage() {
                         Dashboard
                     </h1>
                     <p className="text-sm text-text-3 mt-1 font-mono">
-                        Welcome back, {session.user?.name?.split(' ')[0] || 'Developer'}
+                        Welcome back, {userProfile.name.split(' ')[0]}
                     </p>
                 </div>
                 <Link
@@ -48,18 +63,30 @@ export default async function DashboardPage() {
                         <div className="space-y-3">
                             <div>
                                 <p className="text-[10px] text-text-3 font-mono mb-0.5">Name</p>
-                                <p className="text-sm text-text-0 truncate font-medium">{session.user?.name}</p>
+                                <p className="text-sm text-text-0 truncate font-medium">{userProfile.name}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] text-text-3 font-mono mb-0.5">Email</p>
-                                <p className="text-sm text-text-0 truncate font-medium">{session.user?.email}</p>
+                                <p className="text-sm text-text-0 truncate font-medium">{userProfile.email}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-text-3 font-mono mb-0.5">GitHub</p>
+                                <p className="text-sm text-text-0 truncate font-medium">
+                                    {userProfile.githubUsername ? `@${userProfile.githubUsername}` : 'Not linked'}
+                                </p>
                             </div>
                             <div>
                                 <p className="text-[10px] text-text-3 font-mono mb-0.5">Account</p>
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald/10 text-emerald border border-emerald/20">
-                                    Developer
+                                    {userProfile.role}
                                 </span>
                             </div>
+                            {userProfile.memberSince && (
+                                <div>
+                                    <p className="text-[10px] text-text-3 font-mono mb-0.5">Member Since</p>
+                                    <p className="text-sm text-text-0 truncate font-medium">{userProfile.memberSince}</p>
+                                </div>
+                            )}
                         </div>
                         <div className="mt-5 pt-4 border-t border-stroke">
                             <Link href="/profile" className="btn-secondary w-full justify-center text-xs">
