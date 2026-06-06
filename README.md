@@ -8,6 +8,9 @@
 
 **Two powerful lenses. One unified platform.**
 
+## Contributing
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup guide and contribution guidelines.
+
 [![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com/)
