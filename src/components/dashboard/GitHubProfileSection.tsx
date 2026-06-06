@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Github, Star, Terminal, Link as LinkIcon, AlertCircle, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import SkeletonCard from './SkeletonCard';
 import { useRouter } from 'next/navigation';
 
 interface GitHubRepo {
@@ -149,16 +150,19 @@ export default function GitHubProfileSection() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="w-full flex justify-center py-12">
-                <div className="flex items-center gap-3 text-text-3 font-mono text-sm">
-                    <span className="w-4 h-4 border-2 border-emerald border-t-transparent rounded-full animate-spin" />
-                    Loading GitHub profile...
-                </div>
-            </div>
-        );
-    }
+   if (loading) {
+    return (
+        <div
+            className="grid md:grid-cols-2 gap-4 mt-8"
+            aria-busy="true"
+            aria-label="Loading..."
+        >
+            {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonCard key={i} className="min-h-[150px]" />
+            ))}
+        </div>
+    );
+}
 
     // Empty state: show connect UI
     if (data?.message === 'No GitHub connection available' || (!data?.repos?.length && !data?.starred?.length)) {

@@ -3,8 +3,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
     FileCode2, GitBranch, Layers, AlertTriangle, RefreshCw,
-    TrendingUp, PieChart, ArrowRight, Loader2
+    TrendingUp, PieChart, ArrowRight
 } from 'lucide-react';
+import SkeletonCard from './SkeletonCard';
 import Link from 'next/link';
 
 interface OverviewData {
@@ -89,12 +90,39 @@ export default function DashboardMetrics() {
     }, [fetchData]);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-6 h-6 text-emerald animate-spin" />
+    return (
+        <div className="space-y-6" aria-busy="true" aria-label="Loading...">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <SkeletonCard key={i} />
+                ))}
             </div>
-        );
-    }
+
+            <div className="grid md:grid-cols-3 gap-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="card p-5 border-stroke animate-pulse">
+                        <div className="h-4 w-28 rounded bg-white/10 mb-5" />
+                        <div className="space-y-3">
+                            <div className="h-3 w-full rounded bg-white/10" />
+                            <div className="h-3 w-5/6 rounded bg-white/10" />
+                            <div className="h-3 w-4/6 rounded bg-white/10" />
+                            <div className="h-3 w-3/6 rounded bg-white/10" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="card p-5 border-stroke animate-pulse">
+                <div className="h-4 w-32 rounded bg-white/10 mb-4" />
+                <div className="space-y-3">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="h-12 rounded-xl bg-white/10" />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
 
     if (error || !data) {
         return (
