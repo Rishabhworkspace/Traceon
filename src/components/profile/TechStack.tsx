@@ -7,7 +7,7 @@ interface TechStackProps {
     languages: Record<string, number>;
 }
 
-// ✅ Expanded language color map
+// Expanded language color map
 const LANGUAGE_COLORS: Record<string, string> = {
     TypeScript: '#3178c6',
     JavaScript: '#f1e05a',
@@ -25,7 +25,6 @@ const LANGUAGE_COLORS: Record<string, string> = {
     Shell: '#89e051',
     Dockerfile: '#384d54',
 
-    // ✅ Added missing languages
     C: '#555555',
     Assembly: '#6E4C13',
     Makefile: '#427819',
@@ -42,27 +41,36 @@ const LANGUAGE_COLORS: Record<string, string> = {
     Clojure: '#5881d8'
 };
 
-// ✅ Hash-based dynamic color generator
-function getLanguageColor(language: string): string {
+// Collision-safe color generator
+function getLanguageColor(
+    language: string,
+    usedColors: Set<string>
+): string {
     const lang = language.trim();
 
-    // If exists → use mapped color
     if (LANGUAGE_COLORS[lang]) {
         return LANGUAGE_COLORS[lang];
     }
 
-    // Generate hash
     let hash = 0;
     for (let i = 0; i < lang.length; i++) {
         hash = lang.charCodeAt(i) + ((hash << 5) - hash);
     }
 
-    // Convert to HSL
-    const hue = Math.abs(hash) % 360;
-    const saturation = 60 + (Math.abs(hash) % 20); // 60–80
-    const lightness = 50 + (Math.abs(hash) % 10);  // 50–60
+    let hue = Math.abs(hash) % 360;
+    const saturation = 70;
+    const lightness = 55;
 
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    let color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+    // Avoid duplicate colors
+    while (usedColors.has(color)) {
+        hue = (hue + 37) % 360;
+        color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+
+    usedColors.add(color);
+    return color;
 }
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -83,7 +91,9 @@ export function TechStack({ languages }: TechStackProps) {
     if (!languages || Object.keys(languages).length === 0) {
         return (
             <div className="card h-full p-6 flex-1 flex flex-col justify-center items-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] !rounded-sm bg-surface-1">
-                <p className="text-sm text-text-3 font-mono italic">No language data available.</p>
+                <p className="text-sm text-text-3 font-mono italic">
+                    No language data available.
+                </p>
             </div>
         );
     }
@@ -92,21 +102,34 @@ export function TechStack({ languages }: TechStackProps) {
         .sort(([, a], [, b]) => b - a)
         .slice(0, 8);
 
-    const totalBytes = sortedLanguages.reduce((sum, [, bytes]) => sum + bytes, 0);
+    const totalBytes = sortedLanguages.reduce(
+        (sum, [, bytes]) => sum + bytes,
+        0
+    );
 
-    // ✅ FIXED: using getLanguageColor()
-    const chartData = sortedLanguages.map(([name, bytes]) => ({
-        name,
-        value: Number(((bytes / totalBytes) * 100).toFixed(1)),
-        color: getLanguageColor(name)
-    }));
+    // Track used colors
+    const usedColors = new Set<string>();
+
+    // FIXED: safe percentage + unique colors
+    const chartData = sortedLanguages.map(([name, bytes]) => {
+        const percentage =
+            totalBytes === 0
+                ? 0
+                : Number(((bytes / totalBytes) * 100).toFixed(1));
+
+        return {
+            name,
+            value: percentage,
+            color: getLanguageColor(name, usedColors)
+        };
+    });
 
     return (
         <div className="card h-full p-6 flex-1 flex animate-fade-up animate-delay-2 relative overflow-hidden group shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] !rounded-sm bg-surface-1 hover:!border-amber/40 hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.15)] transition-all">
 
             <div className="flex flex-col md:flex-row w-full gap-8 relative z-10">
 
-                {/* Left Side */}
+                {/* Left */}
                 <div className="flex flex-col flex-1 shrink-0">
                     <div className="flex items-center gap-3 mb-6 border-b border-stroke/50 pb-4">
                         <div className="w-10 h-10 rounded-sm bg-amber/5 border border-amber/20 flex items-center justify-center shrink-0">
@@ -138,7 +161,7 @@ export function TechStack({ languages }: TechStackProps) {
                     </div>
                 </div>
 
-                {/* Right Side */}
+                {/* Right */}
                 <div className="flex-1 min-h-[300px] flex items-center justify-center relative">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
