@@ -91,7 +91,8 @@ export default function DashboardMetrics() {
 
     if (loading) {
     return (
-        <div className="space-y-6" aria-busy="true" aria-label="Loading...">
+        <div className="space-y-6" role="status"
+  aria-live="polite" aria-busy="true" aria-label="Loading...">
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                     <SkeletonCard key={i} />
