@@ -5,8 +5,6 @@ import { ProfileAnalysis } from "@/lib/db/models/ProfileAnalysis";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-  await dbConnect();
-  
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/home`,
@@ -14,14 +12,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const profiles = await ProfileAnalysis.find({})
-    .select("username lastAnalyzedAt")
-    .lean();
+  try {
+    await dbConnect();
+    const profiles = await ProfileAnalysis.find({})
+      .select("username lastAnalyzedAt")
+      .lean();
 
-  const profileRoutes: MetadataRoute.Sitemap = profiles.map((profile) => ({
-    url: `${baseUrl}/profile/${profile.username}`,
-    lastModified: profile.lastAnalyzedAt || new Date(),
-  }));
+    const profileRoutes: MetadataRoute.Sitemap = profiles.map((profile) => ({
+      url: `${baseUrl}/profile/${profile.username}`,
+      lastModified: profile.lastAnalyzedAt || new Date(),
+    }));
 
-  return [...staticRoutes, ...profileRoutes];
+    return [...staticRoutes, ...profileRoutes];
+  } catch (error) {
+    console.error("Failed to generate dynamic sitemap:", error);
+    return staticRoutes;
+  }
 }
