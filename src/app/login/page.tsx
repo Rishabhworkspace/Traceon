@@ -272,7 +272,7 @@ export default function LoginPage() {
 >
     <Github className="w-5 h-5" />
     GitHub
-    <span className="text-xs text-text-3">(incl. private repos)</span>
+    <span className="text-xs text-text-3">(needed to analyze private repos)</span>
 </button>
                     </div>
 
