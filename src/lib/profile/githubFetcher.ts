@@ -136,7 +136,7 @@ export async function fetchGitHubProfileData(
     if (userRes.status === 404) {
       throw new UserNotFoundError(`User ${username} not found on GitHub`);
     }
-    if (userRes.status === 403) {
+    if (userRes.status === 403 || userRes.status === 429) {
       // Extract rate limit reset time from headers
       const resetTimeHeader = userRes.headers.get("x-ratelimit-reset");
       const resetTime = resetTimeHeader
