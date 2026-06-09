@@ -15,6 +15,8 @@ import { fetchGitHubProfileData } from '@/lib/profile/githubFetcher';
 import { analyzeProfileQualitative } from '@/lib/profile/analyzer';
 import { computeAllCURISMScores } from '@/lib/profile/curismScorer';
 import { computeMasterScore } from '@/lib/profile/rankCalculator';
+// Import our custom error classes
+import { UserNotFoundError, GitHubRateLimitError } from '@/lib/errors';
 
 export async function getOrAnalyzeProfile(username: string) {
     username = username.toLowerCase();
@@ -36,9 +38,25 @@ export async function getOrAnalyzeProfile(username: string) {
         };
     }
 
-    // ─── 2. Fetch Data from GitHub ───
+    // ─── 2. Fetch Data from GitHub (with typed error handling) ───
     console.log(`[Profile Service] Fetching GitHub data for ${username}...`);
-    const githubData = await fetchGitHubProfileData(username);
+    
+    let githubData;
+    try {
+        githubData = await fetchGitHubProfileData(username);
+    } catch (error) {
+        // Re-throw typed errors for the API route to handle
+        if (error instanceof UserNotFoundError) {
+            throw error;
+        }
+        
+        if (error instanceof GitHubRateLimitError) {
+            throw error;
+        }
+        
+        // For any other error, wrap it in a more descriptive error
+        throw new Error(`Failed to fetch GitHub data for ${username}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
 
     // ─── 3. Compute CURISM Scores Deterministically ───
     console.log(`[Profile Service] Computing CURISM scores for ${username}...`);

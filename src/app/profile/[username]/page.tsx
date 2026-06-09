@@ -8,6 +8,8 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileDashboardView } from '@/components/profile/ProfileDashboardView';
 import { getOrAnalyzeProfile } from '@/lib/profile/service';
+// Import our typed error classes
+import { UserNotFoundError, GitHubRateLimitError } from '@/lib/errors';
 
 export interface ProfileData {
     username: string;
@@ -90,14 +92,22 @@ async function getProfileData(username: string): Promise<ProfileData | { error: 
     try {
         const result = await getOrAnalyzeProfile(username);
         return result.data as ProfileData;
-    } catch (err: any) {
-        if (err.message === 'User not found') {
+    } catch (err: unknown) { // Changed from 'any' to 'unknown' for type safety
+        // Replace string comparisons with instanceof checks
+        if (err instanceof UserNotFoundError) {
             return { error: 'GitHub user not found' };
         }
-        if (err.message === 'GitHub API rate limit exceeded') {
+        
+        if (err instanceof GitHubRateLimitError) {
             return { error: 'GitHub API rate limit exceeded. Please try again later or add a GITHUB_TOKEN.' };
         }
-        return { error: `Analysis failed: ${err.message}` };
+        
+        // Fallback for all other errors
+        return { 
+            error: err instanceof Error 
+                ? `Analysis failed: ${err.message}` 
+                : 'An unexpected error occurred during profile analysis' 
+        };
     }
 }
 
