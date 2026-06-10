@@ -266,13 +266,14 @@ export default function LoginPage() {
                             Google
                         </button>
                         <button
-                            type="button"
-                            onClick={() => signIn('github', { callbackUrl: '/home' })}
-                            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-stroke bg-surface-0 hover:bg-surface-1 transition-colors text-sm font-medium text-text-0 shadow-sm"
-                        >
-                            <Github className="w-5 h-5" />
-                            GitHub
-                        </button>
+    type="button"
+    onClick={() => signIn('github', { callbackUrl: '/home' })}
+    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-stroke bg-surface-0 hover:bg-surface-1 transition-colors text-sm font-medium text-text-0 shadow-sm"
+>
+    <Github className="w-5 h-5" />
+    GitHub
+    <span className="text-xs text-text-3">(needed to analyze private repos)</span>
+</button>
                     </div>
 
                     <p className="text-center text-sm text-text-3">
