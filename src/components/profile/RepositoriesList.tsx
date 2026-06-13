@@ -3,19 +3,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Database, GitCompare, GitFork, AlertCircle, ShieldAlert, BadgeCheck, ExternalLink, CalendarDays, Star, TerminalSquare } from 'lucide-react';
-
-interface Repository {
-    name: string;
-    description: string;
-    stargazers_count: number;
-    language: string;
-    updated_at: string;
-    html_url: string;
-}
+import { RepositorySummary } from '@/lib/profile/types';
 
 interface RepositoriesListProps {
-    repositories?: Repository[];
+    repositories?: RepositorySummary[];
 }
+
 
 // Deterministic random number generator based on a string seed
 function seededRandom(seedStr: string) {
@@ -29,7 +22,7 @@ function seededRandom(seedStr: string) {
     };
 }
 
-function calculateRepoMetrics(repo: Repository) {
+function calculateRepoMetrics(repo: RepositorySummary) {
     // Generate deterministic metrics based on the repo name and language so they persist
     const random = seededRandom(repo.name + (repo.language || 'generic'));
 

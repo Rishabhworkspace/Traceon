@@ -3,11 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Database, Globe, Cpu, ShieldCheck, TerminalSquare, Cloud, Hexagon, Code2, ChevronRight, Binary } from 'lucide-react';
-
-interface DomainSkill {
-    domain: string;
-    skills: string[];
-}
+import { DomainSkill } from '@/lib/profile/types';
 
 interface SkillsGridProps {
     skillsByDomain?: DomainSkill[];
@@ -26,7 +22,11 @@ const getDomainIcon = (domainName: string) => {
     return <Hexagon className="w-6 h-6" />;
 };
 
-function Layers(props: any) {
+import React from 'react';
+
+interface LayersProps extends React.SVGProps<SVGSVGElement> {}
+
+function Layers(props: LayersProps) {
     return (
         <svg
             {...props}
