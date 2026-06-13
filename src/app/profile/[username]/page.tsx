@@ -114,6 +114,41 @@ async function getProfileData(username: string): Promise<ProfileData | { error: 
     }
 }
 
+function createFallbackMetadata(username: string): Metadata {
+    const displayUsername = username.charAt(0).toUpperCase() + username.slice(1);
+    const fallbackTitle = `${displayUsername}'s Traceon Profile`;
+    const fallbackDescription = `View ${displayUsername}'s developer fit, engineering DNA, and codebase intelligence profile on Traceon.`;
+    const fallbackImage = `https://github.com/${username}.png`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const profileUrl = `${baseUrl}/profile/${username}`;
+
+    return {
+        title: fallbackTitle,
+        description: fallbackDescription,
+        openGraph: {
+            title: fallbackTitle,
+            description: fallbackDescription,
+            url: profileUrl,
+            siteName: 'Traceon',
+            images: [
+                {
+                    url: fallbackImage,
+                    width: 1200,
+                    height: 630,
+                    alt: `${displayUsername}'s Avatar`,
+                },
+            ],
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: fallbackTitle,
+            description: fallbackDescription,
+            images: [fallbackImage],
+        },
+    };
+}
+
 export async function generateMetadata(
     { params }: { params: Promise<{ username: string }> }
 ): Promise<Metadata> {
@@ -130,36 +165,7 @@ export async function generateMetadata(
         const displayUsername = username.charAt(0).toUpperCase() + username.slice(1);
 
         if (!profile || !profile.aiAssessment || !profile.masterScore) {
-            // Fallback metadata for unanalyzed profiles
-            const fallbackTitle = `${displayUsername}'s Traceon Profile`;
-            const fallbackDescription = `View ${displayUsername}'s developer fit, engineering DNA, and codebase intelligence profile on Traceon.`;
-            const fallbackImage = `https://github.com/${username}.png`;
-
-            return {
-                title: fallbackTitle,
-                description: fallbackDescription,
-                openGraph: {
-                    title: fallbackTitle,
-                    description: fallbackDescription,
-                    url: profileUrl,
-                    siteName: 'Traceon',
-                    images: [
-                        {
-                            url: fallbackImage,
-                            width: 1200,
-                            height: 630,
-                            alt: `${displayUsername}'s Avatar`,
-                        },
-                    ],
-                    type: 'website',
-                },
-                twitter: {
-                    card: 'summary_large_image',
-                    title: fallbackTitle,
-                    description: fallbackDescription,
-                    images: [fallbackImage],
-                },
-            };
+            return createFallbackMetadata(username);
         }
 
         const { archetype } = profile.aiAssessment;
@@ -208,39 +214,7 @@ export async function generateMetadata(
         };
     } catch (error) {
         console.error('Error generating metadata for profile:', error);
-        
-        // Return standard fallback on error (with full OpenGraph and Twitter Card tags)
-        const displayUsername = username.charAt(0).toUpperCase() + username.slice(1);
-        const fallbackTitle = `${displayUsername}'s Traceon Profile`;
-        const fallbackDescription = `View ${displayUsername}'s developer fit, engineering DNA, and codebase intelligence profile on Traceon.`;
-        const fallbackImage = `https://github.com/${username}.png`;
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
-
-        return {
-            title: fallbackTitle,
-            description: fallbackDescription,
-            openGraph: {
-                title: fallbackTitle,
-                description: fallbackDescription,
-                url: `${baseUrl}/profile/${username}`,
-                siteName: 'Traceon',
-                images: [
-                    {
-                        url: fallbackImage,
-                        width: 1200,
-                        height: 630,
-                        alt: `${displayUsername}'s Avatar`,
-                    },
-                ],
-                type: 'website',
-            },
-            twitter: {
-                card: 'summary_large_image',
-                title: fallbackTitle,
-                description: fallbackDescription,
-                images: [fallbackImage],
-            },
-        };
+        return createFallbackMetadata(username);
     }
 }
 
