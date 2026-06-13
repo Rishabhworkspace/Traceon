@@ -34,7 +34,7 @@ export interface ACIDBreakdown {
 
 export type DeveloperGrade = 'C' | 'B' | 'A' | 'S' | 'S+';
 
-export interface MasterScore {
+export interface MasterScoreData {
   finalScore: number;       // 0–10
   grade: DeveloperGrade;
   gradeTitle: string;       // "Senior Developer", etc.
@@ -100,24 +100,79 @@ export interface RepoQualitySignal {
 
 // ─── Complete Analysis Output ───
 
-export interface CURISMAnalysisResult {
-  curismScores: CURISMScores;
-  curismDescriptions: CURISMDescriptions;
-  acidBreakdown: ACIDBreakdown;
-  masterScore: MasterScore;
-  // AI-generated qualitative fields
-  archetype: string;
-  engineeringDNA: {
-    problemSolving: string;
-    architectureMaturity: string;
-    documentation: string;
-  };
-  traits: {
-    strengths: string[];
-    weaknesses: string[];
-  };
-  skillsByDomain: {
+export interface EngineeringDNAType {
+  problemSolving: string;
+  architectureMaturity: string;
+  documentation: string;
+}
+
+export interface ProfileTraits {
+  strengths: string[];
+  weaknesses: string[];
+}
+
+export interface DomainSkill {
     domain: string;
     skills: string[];
-  }[];
+}
+
+export interface AIAssessmentType {
+  archetype: string;
+  curismDescriptions: Record<string, string>;
+  engineeringDNA: EngineeringDNAType;
+  traits: ProfileTraits;
+  skillsByDomain: DomainSkill[];
+}
+
+// ─── Profile Data ───
+
+export interface RepositorySummary {
+    name: string;
+    description: string;
+    stargazers_count: number;
+    language: string;
+    updated_at: string;
+    html_url: string;
+}
+
+export interface CommitFrequency {
+    last30Days: number;
+    last90Days: number;
+    last365Days: number;
+    activeDaysLastYear: number;
+}
+
+export interface PullRequestActivity {
+    totalPRsOpened: number;
+    totalPRsMerged: number;
+    externalPRsMerged: number;
+    prReviewsDone: number;
+}
+
+export interface IssueActivity {
+    totalOpened: number;
+    externalIssues: number;
+}
+
+export interface AccountAge {
+    years: number;
+    months: number;
+}
+
+export interface ProfileData {
+    username: string;
+    avatarUrl: string;
+    bio: string | null;
+    techStack: Record<string, number>;
+    curismScores: CURISMScores;
+    acidBreakdown: ACIDBreakdown;
+    masterScore: MasterScoreData;
+    aiAssessment: AIAssessmentType;
+    repositories: RepositorySummary[];
+    commitFrequency: CommitFrequency;
+    pullRequestActivity: PullRequestActivity;
+    issueActivity: IssueActivity;
+    accountAge: AccountAge;
+    totalStarsReceived: number;
+    totalForksReceived: number;
 }

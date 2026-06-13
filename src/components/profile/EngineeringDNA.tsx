@@ -1,12 +1,9 @@
 // src/components/profile/EngineeringDNA.tsx
 import { BrainCircuit, Layers, FileText } from 'lucide-react';
+import { EngineeringDNAType } from '@/lib/profile/types';
 
 interface EngineeringDNAProps {
-    dna: {
-        problemSolving: string;
-        architectureMaturity: string;
-        documentation: string;
-    };
+    dna: EngineeringDNAType;
 }
 
 export function EngineeringDNA({ dna }: EngineeringDNAProps) {

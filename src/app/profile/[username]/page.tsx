@@ -10,83 +10,8 @@ import { ProfileDashboardView } from '@/components/profile/ProfileDashboardView'
 import { getOrAnalyzeProfile } from '@/lib/profile/service';
 // Import our typed error classes
 import { UserNotFoundError, GitHubRateLimitError } from '@/lib/errors';
+import { ProfileData } from '@/lib/profile/types';
 
-export interface ProfileData {
-    username: string;
-    avatarUrl: string;
-    bio: string | null;
-    techStack: Record<string, number>;
-    curismScores: {
-        reliability: number;
-        security: number;
-        maintainability: number;
-        influence: number;
-        contribution: number;
-        uniqueness: number;
-    };
-    acidBreakdown: {
-        architecture: number;
-        crossDomain: number;
-        innovation: number;
-        documentation: number;
-    };
-    masterScore: {
-        finalScore: number;
-        grade: string;
-        gradeTitle: string;
-        hardSkills: number;
-        softSkills: number;
-        builderSkills: number;
-        percentile?: number;
-    };
-    aiAssessment: {
-        archetype: string;
-        curismDescriptions: Record<string, string>;
-        engineeringDNA: {
-            problemSolving: string;
-            architectureMaturity: string;
-            documentation: string;
-        };
-        traits: {
-            strengths: string[];
-            weaknesses: string[];
-        };
-        skillsByDomain: {
-            domain: string;
-            skills: string[];
-        }[];
-    };
-    repositories: {
-        name: string;
-        description: string;
-        stargazers_count: number;
-        language: string;
-        updated_at: string;
-        html_url: string;
-    }[];
-    commitFrequency: {
-        last30Days: number;
-        last90Days: number;
-        last365Days: number;
-        activeDaysLastYear: number;
-    };
-    pullRequestActivity: {
-        totalPRsOpened: number;
-        totalPRsMerged: number;
-        externalPRsMerged: number;
-        prReviewsDone: number;
-    };
-    issueActivity: {
-        totalOpened: number;
-        externalIssues: number;
-    };
-    accountAge: {
-        years: number;
-        months: number;
-    };
-    totalStarsReceived: number;
-    totalForksReceived: number;
-}
 
 async function getProfileData(username: string): Promise<ProfileData | { error: string }> {
     try {

@@ -3,25 +3,20 @@
 
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Target, Award, TrendingUp, Shield, Zap } from 'lucide-react';
+import { CURISMScores, CURISMDescriptions, MasterScoreData } from '@/lib/profile/types';
 
-interface CURISMScores {
-    reliability: number;
-    security: number;
-    maintainability: number;
-    influence: number;
-    contribution: number;
-    uniqueness: number;
+interface TooltipItem {
+    payload: {
+        subject: string;
+    };
+    value: number;
 }
 
-interface MasterScoreData {
-    finalScore: number;
-    grade: string;
-    gradeTitle: string;
-    hardSkills: number;
-    softSkills: number;
-    builderSkills: number;
-    percentile?: number;
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: TooltipItem[];
 }
+
 
 interface DomainExpertiseProps {
     curismScores?: CURISMScores;
@@ -45,7 +40,7 @@ const GRADE_BG: Record<string, string> = {
     'C': 'bg-text-3/10 border-text-3/30',
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-surface-0/95 backdrop-blur-md border border-emerald/30 p-3 rounded-sm shadow-[0_0_20px_rgba(16,185,129,0.1)]">
@@ -220,11 +215,10 @@ export function DomainExpertise({ curismScores, curismDescriptions, masterScore 
                             <div key={item.key} className="flex flex-col gap-1">
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-sm font-bold text-text-0">{item.label}</span>
-                                    <span className={`text-xs font-mono font-bold ${
-                                        item.score >= 8 ? 'text-emerald'
-                                        : item.score >= 5 ? 'text-amber'
-                                        : 'text-rose'
-                                    }`}>
+                                    <span className={`text-xs font-mono font-bold ${item.score >= 8 ? 'text-emerald'
+                                            : item.score >= 5 ? 'text-amber'
+                                                : 'text-rose'
+                                        }`}>
                                         {item.score.toFixed(1)}/10
                                     </span>
                                     <span className="text-[9px] uppercase tracking-widest text-text-3 font-mono ml-auto">
