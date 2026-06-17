@@ -650,17 +650,126 @@ async function fetchIssueActivity(
 }
 
 // ═══════════════════════════════════════════════════════════
-// COMMIT FREQUENCY
+// COMMIT FREQUENCY (with GraphQL Contribution Calendar)
 // ═══════════════════════════════════════════════════════════
+
+const CONTRIBUTION_QUERY = `
+query($username: String!, $from: DateTime!, $to: DateTime!) {
+  user(login: $username) {
+    contributionsCollection(from: $from, to: $to) {
+      contributionCalendar {
+        totalContributions
+        weeks {
+          contributionDays {
+            contributionCount
+            date
+          }
+        }
+      }
+    }
+  }
+}
+`;
+
+async function fetchContributionGraphQL(
+  username: string,
+  token: string,
+): Promise<{
+  weeks: { contributionCount: number; date: string }[];
+  totalContributions: number;
+} | null> {
+  try {
+    const now = new Date();
+    const from = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+    const to = now.toISOString();
+
+    const res = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: {
+        Authorization: `bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: CONTRIBUTION_QUERY,
+        variables: { username, from, to },
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    if (json.errors) {
+      console.warn("[Traceon] GraphQL errors:", json.errors);
+      return null;
+    }
+
+    const calendar =
+      json.data?.user?.contributionsCollection?.contributionCalendar;
+    if (!calendar) return null;
+
+    const days: { contributionCount: number; date: string }[] = [];
+    for (const week of calendar.weeks) {
+      for (const day of week.contributionDays) {
+        days.push({
+          contributionCount: day.contributionCount,
+          date: day.date,
+        });
+      }
+    }
+
+    return { weeks: days, totalContributions: calendar.totalContributions };
+  } catch (e) {
+        console.warn("[Traceon] GraphQL contribution fetch failed, falling back to Events API:", e);
+    return null;
+  }
+}
 
 async function fetchCommitFrequency(
   username: string,
   headers: Record<string, string>,
 ) {
+  const token = process.env.GITHUB_TOKEN;
+
+  // Try GraphQL API first for accurate yearly data
+  if (token) {
+    const graphqlData = await fetchContributionGraphQL(username, token);
+    if (graphqlData && graphqlData.weeks.length > 0) {
+      const now = Date.now();
+      const days = graphqlData.weeks;
+      let last30 = 0;
+      let last90 = 0;
+      const activeDateSet = new Set<string>();
+
+      for (const day of days) {
+        const diffDays =
+          (now - new Date(day.date).getTime()) / (1000 * 3600 * 24);
+
+        if (diffDays <= 365) {
+          if (day.contributionCount > 0) activeDateSet.add(day.date);
+        }
+        if (diffDays <= 30) last30 += day.contributionCount;
+        if (diffDays <= 90) last90 += day.contributionCount;
+      }
+
+      return {
+        last30Days: last30,
+        last90Days: last90,
+        last365Days: graphqlData.totalContributions,
+        activeDaysLastYear: activeDateSet.size,
+      };
+    }
+  }
+
+  // Fallback to Events API
   let last30Days = 0;
   let last90Days = 0;
   let last365Days = 0;
   const activeDates = new Set<string>();
+
+  console.warn(
+    "[Traceon] GraphQL unavailable, falling back to Events API (approximate)",
+  );
 
   try {
     const eventsRes = await safeFetch(
@@ -681,7 +790,6 @@ async function fetchCommitFrequency(
             if (diffDays <= 90) last90Days += pushCommits;
             if (diffDays <= 365) last365Days += pushCommits;
 
-            // Track unique active days for contribution density
             const dateKey = new Date(ev.created_at).toISOString().split("T")[0];
             if (diffDays <= 365) activeDates.add(dateKey);
           }
@@ -689,10 +797,8 @@ async function fetchCommitFrequency(
       }
     }
 
-    // Events API only returns ~300 events (last ~90 days).
-    // For 365-day estimate, scale up from 90-day data if needed.
     if (last365Days <= last90Days && last90Days > 0) {
-      last365Days = Math.round(last90Days * (365 / 90) * 0.7); // Conservative scaling
+      last365Days = Math.round(last90Days * (365 / 90) * 0.7);
     }
   } catch (e) {
     console.warn("[Traceon] Failed to fetch commit frequency:", e);
