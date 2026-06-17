@@ -2,7 +2,38 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, GitCompare, GitFork, AlertCircle, ShieldAlert, BadgeCheck, ExternalLink, CalendarDays, Star, TerminalSquare } from 'lucide-react';
+import { Database, GitCompare, GitFork, AlertCircle, ShieldAlert, BadgeCheck, ExternalLink, CalendarDays, Star } from 'lucide-react';
+const LANGUAGE_COLORS: Record<string, string> = {
+    TypeScript: '#3178c6',
+    JavaScript: '#f1e05a',
+    Python: '#3572A5',
+    Rust: '#dea584',
+    Go: '#00ADD8',
+    Java: '#b07219',
+    'C++': '#f34b7d',
+    'C#': '#178600',
+    PHP: '#4F5D95',
+    Ruby: '#701516',
+    HTML: '#e34c26',
+    CSS: '#563d7c',
+    Vue: '#41b883',
+    Shell: '#89e051',
+    Dockerfile: '#384d54',
+    C: '#555555',
+    Assembly: '#6E4C13',
+    Makefile: '#427819',
+    Perl: '#0298c3',
+    Kotlin: '#A97BFF',
+    Swift: '#ffac45',
+    Dart: '#00B4AB',
+    Lua: '#000080',
+    Nim: '#ffc200',
+    Zig: '#f7a41d',
+    Scala: '#dc322f',
+    Haskell: '#5e5086',
+    Elixir: '#6e4a7e',
+    Clojure: '#5881d8'
+};
 
 interface Repository {
     name: string;
@@ -135,7 +166,10 @@ export function RepositoriesList({ repositories = [] }: RepositoriesListProps) {
                                     <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text-3 mt-1">
                                         {repo.language && (
                                             <span className="flex items-center gap-1 tracking-tight">
-                                                <TerminalSquare className="w-3.5 h-3.5" />
+                                                <span
+                                                    className="w-2.5 h-2.5 rounded-full inline-block"
+                                                    style={{ backgroundColor: LANGUAGE_COLORS[repo.language] ?? '#64748b' }}
+                                                />
                                                 {repo.language}
                                             </span>
                                         )}
