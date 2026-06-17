@@ -1,26 +1,7 @@
 // src/components/profile/BuilderMindset.tsx
 import { Activity, GitMerge, GitPullRequest, Layers, Globe, Lightbulb, FileText } from 'lucide-react';
+import { ACIDBreakdown, CommitFrequency, PullRequestActivity } from '@/lib/profile/types';
 
-interface ACIDBreakdown {
-    architecture: number;
-    crossDomain: number;
-    innovation: number;
-    documentation: number;
-}
-
-interface CommitFrequency {
-    last30Days: number;
-    last90Days: number;
-    last365Days: number;
-    activeDaysLastYear: number;
-}
-
-interface PullRequestActivity {
-    totalPRsOpened: number;
-    totalPRsMerged: number;
-    externalPRsMerged: number;
-    prReviewsDone: number;
-}
 
 interface BuilderMindsetProps {
     username: string;

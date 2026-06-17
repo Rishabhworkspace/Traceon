@@ -6,7 +6,7 @@ import { generateText } from 'ai';
 import { createGroq } from '@ai-sdk/groq';
 import { z } from 'zod';
 import type { EnrichedProfileData } from './githubFetcher';
-import type { CURISMScores, ACIDBreakdown, MasterScore } from './types';
+import type { CURISMScores, ACIDBreakdown, MasterScoreData } from './types';
 
 const groq = createGroq({
     apiKey: process.env.GROQ_API_KEY,
@@ -66,7 +66,7 @@ export async function analyzeProfileQualitative(
     data: EnrichedProfileData,
     curismScores: CURISMScores,
     acidBreakdown: ACIDBreakdown,
-    masterScore: MasterScore,
+    masterScoreDataMasterScoreData: MasterScoreData,
 ): Promise<QualitativeAnalysisOutput> {
     // Slim down the payload for the LLM
     const summaryPayload = {
@@ -117,7 +117,7 @@ You are an elite Staff Engineer performing a qualitative "Engineering DNA" analy
 - Innovation:      ${acidBreakdown.innovation}/10
 - Documentation:   ${acidBreakdown.documentation}/10
 
-## Master Score: ${masterScore.finalScore}/10 — Grade: ${masterScore.grade} (${masterScore.gradeTitle})
+## Master Score: ${masterScoreDataMasterScoreData.finalScore}/10 — Grade: ${masterScoreDataMasterScoreData.grade} (${masterScoreDataMasterScoreData.gradeTitle})
 
 ## Raw Profile Data:
 ${JSON.stringify(summaryPayload, null, 2)}
@@ -164,7 +164,7 @@ Generate ONLY a valid JSON object. No markdown, no codeblocks, no explanations.
     } catch (e) {
         console.error("[Traceon] Failed to parse AI qualitative response:", text, e);
         // Fallback: return template descriptions based on scores
-        return generateFallbackDescriptions(curismScores, acidBreakdown, masterScore, data);
+        return generateFallbackDescriptions(curismScores, acidBreakdown, masterScoreDataMasterScoreData, data);
     }
 }
 
@@ -174,7 +174,7 @@ Generate ONLY a valid JSON object. No markdown, no codeblocks, no explanations.
 function generateFallbackDescriptions(
     scores: CURISMScores,
     acid: ACIDBreakdown,
-    master: MasterScore,
+    master: MasterScoreData,
     data: EnrichedProfileData,
 ): QualitativeAnalysisOutput {
     const scoreLabel = (s: number) => s >= 8 ? 'excellent' : s >= 6 ? 'good' : s >= 4 ? 'moderate' : 'limited';

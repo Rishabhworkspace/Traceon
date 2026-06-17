@@ -12,9 +12,10 @@ import { BuilderMindset } from '@/components/profile/BuilderMindset';
 import { RepositoriesList } from '@/components/profile/RepositoriesList';
 import { SkillsGrid } from '@/components/profile/SkillsGrid';
 import { SquadMatcher } from '@/components/profile/SquadMatcher';
+import { ProfileData } from '@/lib/profile/types';
 
 interface ProfileDashboardViewProps {
-    data: any; // The full profile data payload from the API
+    data: ProfileData; // The full profile data payload from the API
 }
 
 type TabId = 'overview' | 'matcher' | 'skills' | 'languages' | 'dna' | 'quality' | 'repositories';
