@@ -17,7 +17,7 @@ export async function GET(
   try {
     // Rate Limiting (5 requests per 1 minute)
     const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
-    const rateLimitResult = rateLimit(ip, 5, 60 * 1000);
+    const rateLimitResult = await rateLimit(ip, 5, 60 * 1000);
 
     if (!rateLimitResult.success) {
       return NextResponse.json(
