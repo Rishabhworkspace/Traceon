@@ -497,7 +497,7 @@ async function analyzeRepo(
       const readmeJson = await readmeRes.json();
       if (readmeJson.content) {
         try {
-          const decoded = Buffer.from(readmeJson.content, "base64").toString(
+          const decoded = Buffer.from(readmeJson.content.replace(/[\r\n]/g, ""), "base64").toString(
             "utf-8",
           );
           readmeSnippets[repo.name] =
