@@ -1,11 +1,9 @@
 // src/components/profile/CodeQualityReport.tsx
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ProfileTraits } from '@/lib/profile/types';
 
 interface CodeQualityReportProps {
-    traits: {
-        strengths: string[];
-        weaknesses: string[];
-    };
+    traits: ProfileTraits;
 }
 
 export function CodeQualityReport({ traits }: CodeQualityReportProps) {

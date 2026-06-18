@@ -14,7 +14,7 @@ import { ProfileAnalysis } from '@/lib/db/models/ProfileAnalysis';
 import { fetchGitHubProfileData } from '@/lib/profile/githubFetcher';
 import { analyzeProfileQualitative } from '@/lib/profile/analyzer';
 import { computeAllCURISMScores } from '@/lib/profile/curismScorer';
-import { computeMasterScore } from '@/lib/profile/rankCalculator';
+import { computeMasterScoreData } from '@/lib/profile/rankCalculator';
 // Import our custom error classes
 import { UserNotFoundError, GitHubRateLimitError } from '@/lib/errors';
 
@@ -84,7 +84,7 @@ export async function getOrAnalyzeProfile(username: string, forceRefresh: boolea
     });
 
     // ─── 4. Compute Master Score & Grade ───
-    const masterScore = computeMasterScore(curismScores);
+    const masterScore = computeMasterScoreData(curismScores);
 
     console.log(`[Profile Service] CURISM Scores for ${username}:`, {
         ...curismScores,

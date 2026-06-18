@@ -7,6 +7,12 @@ interface TechStackProps {
     languages: Record<string, number>;
 }
 
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{ name: string; value: number }>;
+}
+
+
 // Expanded language color map
 const LANGUAGE_COLORS: Record<string, string> = {
     TypeScript: '#3178c6',
@@ -73,7 +79,7 @@ function getLanguageColor(
     return color;
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-surface-2 border border-stroke/50 px-3 py-2 shadow-xl backdrop-blur-md rounded-sm">
@@ -98,20 +104,17 @@ export function TechStack({ languages }: TechStackProps) {
         );
     }
 
-    const sortedLanguages = Object.entries(languages)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 8);
+    const allSorted = Object.entries(languages).sort(([, a], [, b]) => b - a);
+    const totalBytes = allSorted.reduce((sum, [, bytes]) => sum + bytes, 0);
 
-    const totalBytes = sortedLanguages.reduce(
-        (sum, [, bytes]) => sum + bytes,
-        0
-    );
+    const topLanguages = allSorted.slice(0, 8);
+    const top8Bytes = topLanguages.reduce((sum, [, bytes]) => sum + bytes, 0);
+    const remainingBytes = totalBytes - top8Bytes;
 
     // Track used colors
     const usedColors = new Set<string>();
 
-    // FIXED: safe percentage + unique colors
-    const chartData = sortedLanguages.map(([name, bytes]) => {
+    const chartData = topLanguages.map(([name, bytes]) => {
         const percentage =
             totalBytes === 0
                 ? 0
@@ -124,6 +127,13 @@ export function TechStack({ languages }: TechStackProps) {
         };
     });
 
+    if (remainingBytes > 0) {
+        chartData.push({
+            name: 'Other',
+            value: Number(((remainingBytes / totalBytes) * 100).toFixed(1)),
+            color: '#64748b',
+        });
+    }
     return (
         <div className="card h-full p-6 flex-1 flex animate-fade-up animate-delay-2 relative overflow-hidden group shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] !rounded-sm bg-surface-1 hover:!border-amber/40 hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.15)] transition-all">
 
