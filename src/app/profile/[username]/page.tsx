@@ -3,6 +3,9 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import dbConnect from '@/lib/db/connection';
 import { ProfileAnalysis } from '@/lib/db/models/ProfileAnalysis';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import User from '@/lib/db/models/User';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -14,6 +17,7 @@ import { getOrAnalyzeProfile } from '@/lib/profile/service';
 // Import our typed error classes
 import { UserNotFoundError, GitHubRateLimitError } from '@/lib/errors';
 import { ProfileData } from '@/lib/profile/types';
+
 
 
 async function getProfileData(username: string): Promise<ProfileData | { error: string }> {
@@ -167,6 +171,25 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     // We can safely cast data to our profile schema type here since error is handled
     const profile = data as ProfileData;
 
+    // Resolve ownership and rate-limiting info for Re-analyze button
+    const session = await getServerSession(authOptions);
+    let isOwner = false;
+    let forceRefreshRemaining = 0;
+
+    if (session?.user?.email) {
+        await dbConnect();
+        const dbUser = await User.findOne({ email: session.user.email });
+        if (dbUser && dbUser.githubUsername && dbUser.githubUsername.toLowerCase() === resolvedParams.username.toLowerCase()) {
+            isOwner = true;
+            const now = new Date();
+            const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            const recentRefreshes = (dbUser.forceRefreshTimestamps || []).filter(
+                (t: Date) => new Date(t).getTime() >= twentyFourHoursAgo.getTime()
+            );
+            forceRefreshRemaining = Math.max(0, 3 - recentRefreshes.length);
+        }
+    }
+
     if (!profile.aiAssessment) {
         return (
             <main className="min-h-screen noise dot-matrix bg-background flex flex-col items-center justify-center p-5">
@@ -192,6 +215,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                     avatarUrl={profile.avatarUrl}
                     bio={profile.bio}
                     archetype={profile.aiAssessment.archetype}
+                    lastAnalyzedAt={profile.lastAnalyzedAt}
+                    isOwner={isOwner}
+                    forceRefreshRemaining={forceRefreshRemaining}
                 />
 
                 {/* Dashboard View Manager */}

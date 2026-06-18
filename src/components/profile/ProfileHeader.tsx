@@ -2,15 +2,28 @@
 
 import { Github } from 'lucide-react';
 import Image from 'next/image';
+import { ReanalyzeButton } from './ReanalyzeButton';
+import { RelativeTimestamp } from './RelativeTimestamp';
 
 interface ProfileHeaderProps {
     username: string;
     avatarUrl: string;
     bio: string | null;
     archetype: string;
+    lastAnalyzedAt?: Date | string;
+    isOwner?: boolean;
+    forceRefreshRemaining?: number;
 }
 
-export function ProfileHeader({ username, avatarUrl, bio, archetype }: ProfileHeaderProps) {
+export function ProfileHeader({
+    username,
+    avatarUrl,
+    bio,
+    archetype,
+    lastAnalyzedAt,
+    isOwner = false,
+    forceRefreshRemaining = 0,
+}: ProfileHeaderProps) {
     return (
         <section className="relative w-full rounded-sm border border-stroke bg-surface-1 overflow-hidden p-8 sm:p-10 animate-fade-up shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]">
             {/* Background scanline effect */}
@@ -37,15 +50,24 @@ export function ProfileHeader({ username, avatarUrl, bio, archetype }: ProfileHe
                         <h1 className="text-3xl sm:text-4xl font-display font-bold text-text-0">
                             {username}
                         </h1>
-                        <a
-                            href={`https://github.com/${username}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-sm bg-surface-3 hover:bg-emerald/10 hover:text-emerald text-text-2 transition-colors border border-stroke hover:border-emerald/30 inline-flex"
-                            title="View GitHub Profile"
-                        >
-                            <Github className="w-5 h-5" />
-                        </a>
+                        <div className="flex items-center gap-2">
+                            <a
+                                href={`https://github.com/${username}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-sm bg-surface-3 hover:bg-emerald/10 hover:text-emerald text-text-2 transition-colors border border-stroke hover:border-emerald/30 inline-flex"
+                                title="View GitHub Profile"
+                            >
+                                <Github className="w-5 h-5" />
+                            </a>
+
+                            {isOwner && (
+                                <ReanalyzeButton
+                                    username={username}
+                                    initialRemainingLimit={forceRefreshRemaining}
+                                />
+                            )}
+                        </div>
                     </div>
 
                     {bio && (
@@ -54,15 +76,19 @@ export function ProfileHeader({ username, avatarUrl, bio, archetype }: ProfileHe
                         </p>
                     )}
 
-                    {/* Archetype Badge */}
-                    <div className="relative inline-flex group mt-auto">
-                        <div className="absolute -inset-0.5 bg-emerald/20 rounded-sm blur opacity-50 animate-pulse group-hover:opacity-100 transition duration-500"></div>
-                        <div className="relative flex items-center gap-2 px-5 py-2.5 bg-surface-0 rounded-sm border border-emerald/30 shadow-[inset_0_0_10px_rgba(16,185,129,0.1)]">
-                            <span className="w-2 h-2 rounded-full bg-emerald animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                            <span className="text-sm font-bold text-emerald uppercase tracking-widest font-mono">
-                                [ {archetype} ]
-                            </span>
+                    {/* Archetype Badge & Timestamp */}
+                    <div className="flex flex-wrap items-center gap-4 mt-auto">
+                        <div className="relative inline-flex group">
+                            <div className="absolute -inset-0.5 bg-emerald/20 rounded-sm blur opacity-50 animate-pulse group-hover:opacity-100 transition duration-500"></div>
+                            <div className="relative flex items-center gap-2 px-5 py-2.5 bg-surface-0 rounded-sm border border-emerald/30 shadow-[inset_0_0_10px_rgba(16,185,129,0.1)]">
+                                <span className="w-2 h-2 rounded-full bg-emerald animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                                <span className="text-sm font-bold text-emerald uppercase tracking-widest font-mono">
+                                    [ {archetype} ]
+                                </span>
+                            </div>
                         </div>
+
+                        <RelativeTimestamp date={lastAnalyzedAt} />
                     </div>
                 </div>
             </div>
