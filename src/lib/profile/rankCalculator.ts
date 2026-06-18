@@ -1,7 +1,7 @@
 // src/lib/profile/rankCalculator.ts
 // §13 — Developer Rank Thresholds & Percentile Calculation
 
-import type { DeveloperGrade, MasterScore, CURISMScores } from './types';
+import type { DeveloperGrade, MasterScoreData, CURISMScores } from './types';
 import { computeFinalScore } from './curismScorer';
 
 // ═══════════════════════════════════════════════════════════
@@ -61,7 +61,7 @@ export function getPercentile(score: number): number {
  *   Builder_Skills = Uniqueness (ACID)
  *   Final_Score   = (Hard × 0.30) + (Soft × 0.40) + (Builder × 0.30)
  */
-export function computeMasterScore(scores: CURISMScores): MasterScore {
+export function computeMasterScoreData(scores: CURISMScores): MasterScoreData {
   const hardSkills = (scores.reliability + scores.security + scores.maintainability) / 3;
   const softSkills = (scores.influence + scores.contribution) / 2;
   const builderSkills = scores.uniqueness;

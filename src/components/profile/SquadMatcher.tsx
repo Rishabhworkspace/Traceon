@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Fingerprint, CheckCircle2, XCircle, Search, Target, RefreshCw } from 'lucide-react';
-import { ProfileData } from '@/app/profile/[username]/page';
+import { ProfileData } from '@/lib/profile/types';
 
 interface SquadMatcherProps {
     data: ProfileData; // Entire profile data payload

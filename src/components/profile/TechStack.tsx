@@ -7,6 +7,12 @@ interface TechStackProps {
     languages: Record<string, number>;
 }
 
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{ name: string; value: number }>;
+}
+
+
 // Expanded language color map
 const LANGUAGE_COLORS: Record<string, string> = {
     TypeScript: '#3178c6',
@@ -73,7 +79,7 @@ function getLanguageColor(
     return color;
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-surface-2 border border-stroke/50 px-3 py-2 shadow-xl backdrop-blur-md rounded-sm">
