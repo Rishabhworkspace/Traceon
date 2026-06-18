@@ -6,6 +6,7 @@ export interface IUser extends Document {
     name: string;
     githubUsername?: string;
     image?: string;
+    forceRefreshTimestamps?: Date[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -35,6 +36,10 @@ const UserSchema = new Schema<IUser>(
         },
         image: {
             type: String,
+        },
+        forceRefreshTimestamps: {
+            type: [Date],
+            default: [],
         },
     },
     {

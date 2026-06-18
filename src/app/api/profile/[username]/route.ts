@@ -5,6 +5,8 @@ import { getOrAnalyzeProfile } from "@/lib/profile/service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import dbConnect from "@/lib/db/connection";
+import User from "@/lib/db/models/User";
 // Import our custom error classes
 import { UserNotFoundError, GitHubRateLimitError } from "@/lib/errors";
 
@@ -41,8 +43,59 @@ export async function GET(
     const resolvedParams = await params;
     const username = resolvedParams.username;
 
-    const result = await getOrAnalyzeProfile(username);
-    return NextResponse.json(result);
+    // Parse forceRefresh query param
+    const searchParams = request.nextUrl.searchParams;
+    const forceRefresh = searchParams.get("forceRefresh") === "true";
+
+    await dbConnect();
+    const dbUser = await User.findOne({ email: session.user.email });
+
+    const isOwner = dbUser && dbUser.githubUsername && dbUser.githubUsername.toLowerCase() === username.toLowerCase();
+
+    if (forceRefresh) {
+      if (!isOwner) {
+        return NextResponse.json(
+          { error: "Only the profile owner can force re-analysis" },
+          { status: 403 }
+        );
+      }
+
+      // Check forceRefresh rate limit (max 3 per 24 hours)
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      dbUser.forceRefreshTimestamps = (dbUser.forceRefreshTimestamps || []).filter(
+        (t: Date) => new Date(t).getTime() >= twentyFourHoursAgo.getTime()
+      );
+
+      if (dbUser.forceRefreshTimestamps.length >= 3) {
+        return NextResponse.json(
+          { error: "Re-analyze limit reached. Try again tomorrow." },
+          { status: 429 }
+        );
+      }
+
+      dbUser.forceRefreshTimestamps.push(now);
+      await dbUser.save();
+    }
+
+    const result = await getOrAnalyzeProfile(username, forceRefresh);
+
+    let forceRefreshRemaining = 0;
+    if (isOwner && dbUser) {
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const recentRefreshes = (dbUser.forceRefreshTimestamps || []).filter(
+        (t: Date) => new Date(t).getTime() >= twentyFourHoursAgo.getTime()
+      );
+      forceRefreshRemaining = Math.max(0, 3 - recentRefreshes.length);
+    }
+
+    return NextResponse.json({
+      ...result,
+      isOwner: !!isOwner,
+      forceRefreshRemaining,
+    });
   } catch (error: unknown) {
     // Changed from any to unknown
     console.error("[Profile API Error]:", error);
