@@ -21,7 +21,7 @@ export function ReanalyzeButton({ username, initialRemainingLimit }: ReanalyzeBu
         setError(null);
 
         try {
-            const res = await fetch(`/api/profile/${username}?forceRefresh=true`);
+            const res = await fetch(`/api/profile/${username}`, { method: 'POST' });
             const data = await res.json();
 
             if (!res.ok) {

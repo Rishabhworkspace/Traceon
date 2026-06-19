@@ -131,7 +131,9 @@ export interface RepositorySummary {
     name: string;
     description: string | null;
     stargazers_count: number;
+    forks_count: number;
     language: string | null;
+    topics: string[];
     updated_at: string;
     html_url: string;
 }
@@ -244,9 +246,11 @@ export const AIAssessmentSchema = z.object({
 
 export const RepositorySummarySchema = z.object({
   name: z.string(),
-  description: z.string().nullable().or(z.string()),
+  description: z.string().nullable(),
   stargazers_count: z.number(),
-  language: z.string().nullable().or(z.string()),
+  forks_count: z.number(),
+  language: z.string().nullable(),
+  topics: z.array(z.string()),
   updated_at: z.string(),
   html_url: z.string(),
 });
