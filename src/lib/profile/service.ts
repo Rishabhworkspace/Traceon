@@ -18,24 +18,26 @@ import { computeMasterScoreData } from '@/lib/profile/rankCalculator';
 // Import our custom error classes
 import { UserNotFoundError, GitHubRateLimitError } from '@/lib/errors';
 
-export async function getOrAnalyzeProfile(username: string) {
+export async function getOrAnalyzeProfile(username: string, forceRefresh: boolean = false) {
     username = username.toLowerCase();
 
     await connectDB();
 
     // ─── 1. Check Cache (24h TTL) ───
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const cachedAnalysis = await ProfileAnalysis.findOne({
-        username,
-        schemaVersion: 2, // Only accept v2 (CURISM) cached data
-        lastAnalyzedAt: { $gte: twentyFourHoursAgo }
-    });
+    if (!forceRefresh) {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const cachedAnalysis = await ProfileAnalysis.findOne({
+            username,
+            schemaVersion: 2, // Only accept v2 (CURISM) cached data
+            lastAnalyzedAt: { $gte: twentyFourHoursAgo }
+        });
 
-    if (cachedAnalysis) {
-        return {
-            cached: true,
-            data: JSON.parse(JSON.stringify(cachedAnalysis))
-        };
+        if (cachedAnalysis) {
+            return {
+                cached: true,
+                data: JSON.parse(JSON.stringify(cachedAnalysis))
+            };
+        }
     }
 
     // ─── 2. Fetch Data from GitHub (with typed error handling) ───

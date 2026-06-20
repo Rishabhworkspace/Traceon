@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, GitCompare, GitFork, AlertCircle, ShieldAlert, BadgeCheck, ExternalLink, CalendarDays, Star, TerminalSquare } from 'lucide-react';
 import { RepositorySummary } from '@/lib/profile/types';
 import { Database, GitCompare, GitFork, AlertCircle, ShieldAlert, BadgeCheck, ExternalLink, CalendarDays, Star } from 'lucide-react';
 const LANGUAGE_COLORS: Record<string, string> = {
