@@ -7,6 +7,8 @@ import Repository from '@/lib/db/models/Repository';
 import AnalysisResult from '@/lib/db/models/AnalysisResult';
 import bcrypt from 'bcryptjs';
 
+
+export const maxDuration = 60;
 // ─── GET: Fetch user profile and stats ───────────────────────────
 export async function GET() {
     try {
@@ -83,11 +85,24 @@ export async function POST(req: Request) {
 
         // Image update (base64 or URL)
         if (image !== undefined) {
-            if (typeof image !== 'string' || image.length > 5 * 1024 * 1024) {
-                return NextResponse.json({ message: 'Image too large or invalid' }, { status: 400 });
-            }
-            user.image = image === '' ? undefined : image;
-        }
+    if (typeof image !== 'string') {
+        return NextResponse.json(
+            { message: 'Invalid image format' },
+            { status: 400 }
+        );
+    }
+
+    const imageSizeBytes = Buffer.byteLength(image, 'utf8');
+
+    if (imageSizeBytes > 8 * 1024 * 1024) {
+        return NextResponse.json(
+            { message: 'Image must be under 5MB.' },
+            { status: 413 }
+        );
+    }
+
+    user.image = image === '' ? undefined : image;
+}
 
         // Password update
         if (currentPassword && newPassword) {
