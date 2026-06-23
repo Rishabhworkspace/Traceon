@@ -175,4 +175,5 @@ export interface ProfileData {
     accountAge: AccountAge;
     totalStarsReceived: number;
     totalForksReceived: number;
+    lastAnalyzedAt?: string | Date;
 }
