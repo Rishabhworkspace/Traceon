@@ -1,5 +1,6 @@
 // src/lib/profile/types.ts
 // CURISM Scoring Framework — Type Definitions
+import { z } from 'zod';
 
 // ─── CURISM Dimension Scores (0–10 scale) ───
 
@@ -128,9 +129,11 @@ export interface AIAssessmentType {
 
 export interface RepositorySummary {
     name: string;
-    description: string;
+    description: string | null;
     stargazers_count: number;
-    language: string;
+    forks_count: number;
+    language: string | null;
+    topics: string[];
     updated_at: string;
     html_url: string;
 }
@@ -177,3 +180,120 @@ export interface ProfileData {
     totalForksReceived: number;
     lastAnalyzedAt?: string | Date;
 }
+
+// ─── Zod Validation Schemas ───
+
+export const CURISMScoresSchema = z.object({
+  reliability: z.number(),
+  security: z.number(),
+  maintainability: z.number(),
+  influence: z.number(),
+  contribution: z.number(),
+  uniqueness: z.number(),
+});
+
+export const CURISMDescriptionsSchema = z.object({
+  reliability: z.string(),
+  security: z.string(),
+  maintainability: z.string(),
+  influence: z.string(),
+  contribution: z.string(),
+  uniqueness: z.string(),
+});
+
+export const ACIDBreakdownSchema = z.object({
+  architecture: z.number(),
+  crossDomain: z.number(),
+  innovation: z.number(),
+  documentation: z.number(),
+});
+
+export const DeveloperGradeSchema = z.enum(['C', 'B', 'A', 'S', 'S+']);
+
+export const MasterScoreDataSchema = z.object({
+  finalScore: z.number(),
+  grade: DeveloperGradeSchema,
+  gradeTitle: z.string(),
+  hardSkills: z.number(),
+  softSkills: z.number(),
+  builderSkills: z.number(),
+  percentile: z.number().optional(),
+});
+
+export const EngineeringDNASchema = z.object({
+  problemSolving: z.string(),
+  architectureMaturity: z.string(),
+  documentation: z.string(),
+});
+
+export const ProfileTraitsSchema = z.object({
+  strengths: z.array(z.string()),
+  weaknesses: z.array(z.string()),
+});
+
+export const DomainSkillSchema = z.object({
+  domain: z.string(),
+  skills: z.array(z.string()),
+});
+
+export const AIAssessmentSchema = z.object({
+  archetype: z.string(),
+  curismDescriptions: z.record(z.string(), z.string()),
+  engineeringDNA: EngineeringDNASchema,
+  traits: ProfileTraitsSchema,
+  skillsByDomain: z.array(DomainSkillSchema),
+});
+
+export const RepositorySummarySchema = z.object({
+  name: z.string(),
+  description: z.string().nullable(),
+  stargazers_count: z.number(),
+  forks_count: z.number(),
+  language: z.string().nullable(),
+  topics: z.array(z.string()),
+  updated_at: z.string(),
+  html_url: z.string(),
+});
+
+export const CommitFrequencySchema = z.object({
+  last30Days: z.number(),
+  last90Days: z.number(),
+  last365Days: z.number(),
+  activeDaysLastYear: z.number(),
+});
+
+export const PullRequestActivitySchema = z.object({
+  totalPRsOpened: z.number(),
+  totalPRsMerged: z.number(),
+  externalPRsMerged: z.number(),
+  prReviewsDone: z.number(),
+});
+
+export const IssueActivitySchema = z.object({
+  totalOpened: z.number(),
+  externalIssues: z.number(),
+});
+
+export const AccountAgeSchema = z.object({
+  years: z.number(),
+  months: z.number(),
+});
+
+export const ProfileDataSchema = z.object({
+  username: z.string(),
+  avatarUrl: z.string(),
+  bio: z.string().nullable(),
+  techStack: z.record(z.string(), z.number()),
+  curismScores: CURISMScoresSchema,
+  acidBreakdown: ACIDBreakdownSchema,
+  masterScore: MasterScoreDataSchema,
+  aiAssessment: AIAssessmentSchema,
+  repositories: z.array(RepositorySummarySchema),
+  commitFrequency: CommitFrequencySchema,
+  pullRequestActivity: PullRequestActivitySchema,
+  issueActivity: IssueActivitySchema,
+  accountAge: AccountAgeSchema,
+  totalStarsReceived: z.number(),
+  totalForksReceived: z.number(),
+  lastAnalyzedAt: z.union([z.string(), z.date()]).optional(),
+});

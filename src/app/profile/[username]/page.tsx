@@ -16,14 +16,15 @@ import { ProfileDashboardView } from '@/components/profile/ProfileDashboardView'
 import { getOrAnalyzeProfile } from '@/lib/profile/service';
 // Import our typed error classes
 import { UserNotFoundError, GitHubRateLimitError } from '@/lib/errors';
-import { ProfileData } from '@/lib/profile/types';
+import { ProfileData, ProfileDataSchema } from '@/lib/profile/types';
+import { ReanalyzeFlowButton } from '@/components/profile/ReanalyzeFlowButton';
 
 
 
-async function getProfileData(username: string): Promise<ProfileData | { error: string }> {
+async function getProfileData(username: string): Promise<any> {
     try {
         const result = await getOrAnalyzeProfile(username);
-        return result.data as ProfileData;
+        return result.data;
     } catch (err: unknown) { // Changed from 'any' to 'unknown' for type safety
         // Replace string comparisons with instanceof checks
         if (err instanceof UserNotFoundError) {
@@ -168,8 +169,27 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         );
     }
 
-    // We can safely cast data to our profile schema type here since error is handled
-    const profile = data as ProfileData;
+    // Validate profile data format using Zod schema to prevent runtime React failures
+    const parseResult = ProfileDataSchema.safeParse(data);
+    if (!parseResult.success) {
+        console.error("[Profile Validation Failed]:", parseResult.error);
+        return (
+            <main className="min-h-screen noise dot-matrix bg-background flex flex-col items-center justify-center p-5">
+                <div className="card w-full max-w-lg text-center border-amber/30 bg-amber/5 animate-fade-up">
+                    <AlertTriangle className="w-12 h-12 text-amber mx-auto mb-4" />
+                    <h2 className="text-xl font-bold text-text-0 mb-2">Profile Needs Update</h2>
+                    <p className="text-sm text-text-2 font-mono mb-6">
+                        This profile needs to be re-analyzed to display correctly.
+                    </p>
+                    <div className="flex justify-center">
+                        <ReanalyzeFlowButton username={resolvedParams.username} />
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    const profile = parseResult.data;
 
     // Resolve ownership and rate-limiting info for Re-analyze button
     const session = await getServerSession(authOptions);
