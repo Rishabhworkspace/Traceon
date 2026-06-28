@@ -54,7 +54,7 @@ export function ProfileDashboardView({ data }: ProfileDashboardViewProps) {
                             username={data.username}
                             commitFrequency={data.commitFrequency}
                             pullRequestActivity={data.pullRequestActivity}
-                            recentCommitsCount={data.techStack ? Object.keys(data.techStack).length * 2 : 15}
+                            recentCommitsCount={data.commitFrequency?.last30Days ?? 0}
                             acidBreakdown={data.acidBreakdown}
                         />
                     </motion.div>
