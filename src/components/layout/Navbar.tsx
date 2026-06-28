@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Menu, X, LogOut } from 'lucide-react';
+import { Menu, X, LogOut, Moon, Sun } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 
@@ -21,10 +21,27 @@ const repoNavLinks = [
 
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+        if (typeof document === 'undefined') return 'dark';
+        return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    });
     const { data: session, status } = useSession();
     const pathname = usePathname();
 
     const navLinks = pathname === '/repo' ? repoNavLinks : defaultNavLinks;
+    const isDark = theme === 'dark';
+
+    const applyTheme = (nextTheme: 'dark' | 'light') => {
+        document.documentElement.dataset.theme = nextTheme;
+        document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+        document.documentElement.classList.toggle('light', nextTheme === 'light');
+        window.localStorage.setItem('traceon-theme', nextTheme);
+        setTheme(nextTheme);
+    };
+
+    const toggleTheme = () => {
+        applyTheme(isDark ? 'light' : 'dark');
+    };
 
     if (pathname === '/') {
         return null;
@@ -71,6 +88,15 @@ export default function Navbar() {
 
                     {/* Desktop Actions */}
                     <div className="hidden md:flex items-center gap-2 text-sm font-medium">
+                        <button
+                            type="button"
+                            onClick={toggleTheme}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-stroke text-text-2 transition-colors hover:bg-surface-2 hover:text-text-0"
+                            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+                            title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+                        >
+                            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        </button>
                         {status === 'loading' ? (
                             <div className="w-20 h-8 rounded bg-surface-2 animate-pulse" />
                         ) : session ? (
@@ -149,6 +175,15 @@ export default function Navbar() {
                             </Link>
                         ))}
                         <div className="pt-3 mt-2 border-t border-stroke flex flex-col gap-2">
+                            <button
+                                type="button"
+                                onClick={toggleTheme}
+                                className="btn-ghost flex justify-center items-center !text-sm w-full"
+                                aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+                            >
+                                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                                {isDark ? 'Light mode' : 'Dark mode'}
+                            </button>
                             {status === 'loading' ? (
                                 <div className="h-9 w-full rounded bg-surface-2 animate-pulse" />
                             ) : session ? (
