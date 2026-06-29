@@ -217,7 +217,7 @@ export async function DELETE() {
     // 5. Delete ProfileAnalysis — kept separate so a failure here does not
     //    block account deletion. GDPR: no PII should remain after deletion.
     try {
-      await ProfileAnalysis.deleteOne({ username: user.githubUsername?.toLowerCase() });
+      await ProfileAnalysis.deleteOne({ userId: user._id });
     } catch (profileAnalysisError) {
       console.error(
         "[Account Deletion] Failed to delete ProfileAnalysis for user:",
