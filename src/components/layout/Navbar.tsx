@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, LogOut, Moon, Sun } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 const defaultNavLinks = [
     { label: 'Repo Analysis', href: '/repo' },
@@ -31,12 +32,26 @@ export default function Navbar() {
     const navLinks = pathname === '/repo' ? repoNavLinks : defaultNavLinks;
     const isDark = theme === 'dark';
 
+    useEffect(() => {
+        const handleThemeChange = () => {
+            const nextTheme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+            setTheme(nextTheme);
+        };
+        window.addEventListener('traceon-theme-change', handleThemeChange);
+        window.addEventListener('storage', handleThemeChange);
+        return () => {
+            window.removeEventListener('traceon-theme-change', handleThemeChange);
+            window.removeEventListener('storage', handleThemeChange);
+        };
+    }, []);
+
     const applyTheme = (nextTheme: 'dark' | 'light') => {
         document.documentElement.dataset.theme = nextTheme;
         document.documentElement.classList.toggle('dark', nextTheme === 'dark');
         document.documentElement.classList.toggle('light', nextTheme === 'light');
         window.localStorage.setItem('traceon-theme', nextTheme);
         setTheme(nextTheme);
+        window.dispatchEvent(new Event('traceon-theme-change'));
     };
 
     const toggleTheme = () => {
@@ -88,15 +103,7 @@ export default function Navbar() {
 
                     {/* Desktop Actions */}
                     <div className="hidden md:flex items-center gap-2 text-sm font-medium">
-                        <button
-                            type="button"
-                            onClick={toggleTheme}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-stroke text-text-2 transition-colors hover:bg-surface-2 hover:text-text-0"
-                            aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-                            title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-                        >
-                            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                        </button>
+                        <ThemeToggle />
                         {status === 'loading' ? (
                             <div className="w-20 h-8 rounded bg-surface-2 animate-pulse" />
                         ) : session ? (
