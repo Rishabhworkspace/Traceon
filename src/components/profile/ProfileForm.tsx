@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { Session } from 'next-auth';
-import { Camera, Save, Lock, User, Github, BarChart3, Trash2, AlertTriangle, Link as LinkIcon, FileCode, Calendar } from 'lucide-react';
+import { Camera, Save, Lock, User, Github, BarChart3, Trash2, AlertTriangle, Link as LinkIcon, FileCode, Calendar, Sun, Moon } from 'lucide-react';
 
 interface ProfileStats {
     reposAnalyzed: number;
@@ -27,6 +27,37 @@ export default function ProfileForm({ session }: { session: Session }) {
     // State for GitHub linking
     const [githubUsername, setGithubUsername] = useState('');
     const [isLinkingGH, setIsLinkingGH] = useState(false);
+
+    // State for Theme toggling
+    const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+    useEffect(() => {
+        if (typeof document !== 'undefined') {
+            const currentTheme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+            setTheme(currentTheme);
+        }
+
+        const handleThemeChange = () => {
+            const nextTheme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+            setTheme(nextTheme);
+        };
+        window.addEventListener('traceon-theme-change', handleThemeChange);
+        window.addEventListener('storage', handleThemeChange);
+
+        return () => {
+            window.removeEventListener('traceon-theme-change', handleThemeChange);
+            window.removeEventListener('storage', handleThemeChange);
+        };
+    }, []);
+
+    const handleThemeSelect = (selectedTheme: 'dark' | 'light') => {
+        document.documentElement.dataset.theme = selectedTheme;
+        document.documentElement.classList.toggle('dark', selectedTheme === 'dark');
+        document.documentElement.classList.toggle('light', selectedTheme === 'light');
+        window.localStorage.setItem('traceon-theme', selectedTheme);
+        setTheme(selectedTheme);
+        window.dispatchEvent(new Event('traceon-theme-change'));
+    };
 
     // State for stats
     const [stats, setStats] = useState<ProfileStats | null>(null);
@@ -385,6 +416,114 @@ export default function ProfileForm({ session }: { session: Session }) {
                         </>
                     )}
                 </button>
+            </div>
+
+            {/* ─── Theme Customization ─── */}
+            <div className="card p-6 border-stroke">
+                <div className="flex items-center gap-2 mb-6">
+                    <Sun className="w-5 h-5 text-emerald" />
+                    <h2 className="text-xl font-mono text-text-0">Theme Customization</h2>
+                </div>
+                <p className="text-sm text-text-2 mb-6 leading-relaxed">
+                    Personalize your interface. Toggle between a high-contrast dark palette or a clean, focused light style.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
+                    {/* Dark Option */}
+                    <button
+                        type="button"
+                        onClick={() => handleThemeSelect('dark')}
+                        className={`flex flex-col items-start p-4 rounded-xl border transition-all duration-300 text-left cursor-pointer group bg-surface-1 ${
+                            theme === 'dark'
+                                ? 'border-emerald bg-emerald/[0.02] shadow-[0_0_15px_-3px_rgba(16,185,129,0.1)]'
+                                : 'border-stroke hover:border-text-3 hover:bg-surface-2'
+                        }`}
+                    >
+                        <div className="flex items-center justify-between w-full mb-3">
+                            <div className="flex items-center gap-2">
+                                <div className={`p-1.5 rounded-lg border transition-colors ${
+                                    theme === 'dark' ? 'bg-emerald/10 border-emerald/20 text-emerald' : 'bg-surface-2 border-stroke text-text-2 group-hover:text-text-0'
+                                }`}>
+                                    <Moon className="w-4 h-4" />
+                                </div>
+                                <span className="text-sm font-mono font-bold text-text-0">Obsidian Dark</span>
+                            </div>
+                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                                theme === 'dark' ? 'border-emerald bg-emerald' : 'border-stroke bg-transparent'
+                            }`}>
+                                {theme === 'dark' && <span className="w-1.5 h-1.5 rounded-full bg-surface-0" />}
+                            </div>
+                        </div>
+                        {/* Custom visual preview mockup for dark mode */}
+                        <div className="w-full h-20 rounded bg-surface-0 border border-stroke p-2 flex flex-col gap-1.5 overflow-hidden select-none opacity-80 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center justify-between border-b border-stroke pb-1">
+                                <div className="flex gap-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-rose/60" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-amber/60" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald/60" />
+                                </div>
+                                <div className="w-8 h-2 rounded bg-surface-2" />
+                            </div>
+                            <div className="flex gap-2 items-start mt-1">
+                                <div className="w-1/3 h-10 rounded bg-surface-2 border border-stroke flex items-center justify-center">
+                                    <div className="w-4 h-1 rounded bg-emerald/50" />
+                                </div>
+                                <div className="flex-1 flex flex-col gap-1.5">
+                                    <div className="w-full h-2 rounded bg-surface-2" />
+                                    <div className="w-5/6 h-2 rounded bg-surface-2" />
+                                    <div className="w-2/3 h-2 rounded bg-surface-2" />
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+
+                    {/* Light Option */}
+                    <button
+                        type="button"
+                        onClick={() => handleThemeSelect('light')}
+                        className={`flex flex-col items-start p-4 rounded-xl border transition-all duration-300 text-left cursor-pointer group bg-surface-1 ${
+                            theme === 'light'
+                                ? 'border-emerald bg-emerald/[0.01] shadow-[0_0_15px_-3px_rgba(16,185,129,0.08)]'
+                                : 'border-stroke hover:border-text-3 hover:bg-surface-2'
+                        }`}
+                    >
+                        <div className="flex items-center justify-between w-full mb-3">
+                            <div className="flex items-center gap-2">
+                                <div className={`p-1.5 rounded-lg border transition-colors ${
+                                    theme === 'light' ? 'bg-emerald/10 border-emerald/20 text-emerald' : 'bg-surface-2 border-stroke text-text-2 group-hover:text-text-0'
+                                }`}>
+                                    <Sun className="w-4 h-4" />
+                                </div>
+                                <span className="text-sm font-mono font-bold text-text-0">Quartz Light</span>
+                            </div>
+                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                                theme === 'light' ? 'border-emerald bg-emerald' : 'border-stroke bg-transparent'
+                            }`}>
+                                {theme === 'light' && <span className="w-1.5 h-1.5 rounded-full bg-surface-0" />}
+                            </div>
+                        </div>
+                        {/* Custom visual preview mockup for light mode */}
+                        <div className="w-full h-20 rounded bg-white border border-slate-200 p-2 flex flex-col gap-1.5 overflow-hidden select-none opacity-80 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                                <div className="flex gap-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-rose/60" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-amber/60" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald/60" />
+                                </div>
+                                <div className="w-8 h-2 rounded bg-slate-100" />
+                            </div>
+                            <div className="flex gap-2 items-start mt-1">
+                                <div className="w-1/3 h-10 rounded bg-slate-50 border border-slate-200 flex items-center justify-center">
+                                    <div className="w-4 h-1 rounded bg-emerald/50" />
+                                </div>
+                                <div className="flex-1 flex flex-col gap-1.5">
+                                    <div className="w-full h-2 rounded bg-slate-100" />
+                                    <div className="w-5/6 h-2 rounded bg-slate-100" />
+                                    <div className="w-2/3 h-2 rounded bg-slate-100" />
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
             </div>
 
             {/* ─── Danger Zone ─── */}
